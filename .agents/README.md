@@ -11,7 +11,7 @@ The convention is intentionally small:
 - Put reusable agent rules in `rules/`.
 - Put task flows in `workflows/`.
 - Put verification gates in `checklists/`.
-- Put copyable specialist prompts in `prompts/`.
+- Put scoped delegation cards and copyable dispatch prompts in `agents/`.
 
 ## Research Summary
 
@@ -46,15 +46,11 @@ discover.
 
 | Path | Purpose |
 |---|---|
-| `agents/` | Role cards for scoped subagent delegation. |
+| `agents/` | Role cards for scoped subagent delegation, each with a copyable dispatch prompt. |
 | `skills/` | Repo-local skill definitions for recurring workflows. |
 | `rules/latest-library-implementation.md` | Guard against stale library APIs and unsafe generated code. |
 | `workflows/patient-management-case.md` | End-to-end workflow for building the case challenge. |
 | `checklists/implementation-gates.md` | Verification gates agents must satisfy before calling work done. |
-| `prompts/architect.md` | Prompt for planning architecture and tradeoffs. |
-| `prompts/backend-agent.md` | Prompt for backend/API/database implementation. |
-| `prompts/frontend-agent.md` | Prompt for frontend/UI implementation. |
-| `prompts/reviewer-agent.md` | Prompt for code review and challenge-defense review. |
 
 ## Use Policy
 
@@ -71,7 +67,7 @@ Before implementation work, read:
 - `.agents/rules/latest-library-implementation.md`
 
 For repeated workflows, prefer the smaller skill entrypoints under
-`.agents/skills/`. For delegation, use `.agents/agents/` role cards and the
-matching prompt in `.agents/prompts/`.
+`.agents/skills/`. For delegation, use `.agents/agents/` role cards.
 
-Then select one workflow or prompt from this directory if it matches the task.
+Then select one workflow or role card from this directory if it matches the
+task.

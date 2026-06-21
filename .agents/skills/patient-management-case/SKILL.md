@@ -14,27 +14,27 @@ Patients Management case challenge.
 
 - `docs/Case Assignment - Patients Management System.md`
 - `docs/challenge-resolution.md`
+- `docs/requirements/README.md`
 - `.agents/rules/latest-library-implementation.md`
+- `.agents/workflows/patient-management-case.md`
 - `.agents/checklists/implementation-gates.md`
 
 ## Workflow
 
-1. Classify the task risk.
-2. Identify the smallest vertical slice.
-3. Protect backend trust boundaries first.
-4. Add UI only after the API contract is clear.
-5. Add focused tests for risky behavior.
-6. Document cuts before claiming completion.
+Follow `.agents/workflows/patient-management-case.md`.
 
-## Default Slice Order
+Keep the current task scoped to the smallest defensible vertical slice:
 
-1. Seeded auth with admin/user.
-2. Login endpoint and token expiry.
-3. Auth guard and role guard.
-4. Patient list/create/update/delete API.
-5. Patient table and form.
-6. Failure states and rollback behavior.
-7. README setup and cuts.
+- Backend trust boundary first.
+- Patient API contract before UI polish.
+- Focused tests before broad feature work.
+- README/cut documentation before completion.
+
+## Gates
+
+Before calling work complete, apply `.agents/checklists/implementation-gates.md`.
+For implementation involving named libraries, apply
+`.agents/rules/latest-library-implementation.md`.
 
 ## Output Expectations
 
@@ -44,4 +44,3 @@ For implementation tasks, close with:
 - Files changed.
 - Checks run.
 - Risks/follow-ups.
-

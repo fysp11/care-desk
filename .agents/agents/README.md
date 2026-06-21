@@ -4,7 +4,8 @@
 
 These role cards define how to scope specialized subagents for this repo. They
 are not global agent definitions; they are local contracts for the Patients
-Management case challenge.
+Management case challenge. Each card includes a copyable dispatch prompt for
+the role.
 
 ## Available Roles
 
@@ -21,4 +22,3 @@ Management case challenge.
 - Give agents only the files they need.
 - Do not assign overlapping write sets to parallel implementation agents.
 - Always run reviewer passes on auth/RBAC, validation, and generated UI code.
-

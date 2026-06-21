@@ -15,8 +15,8 @@ Before implementation work, read:
 3. `.agents/README.md`
 4. `.agents/rules/latest-library-implementation.md`
 
-For role-specific work, use the matching artifact under `.agents/agents/` or
-`.agents/prompts/`.
+For role-specific work, use the matching artifact under `.agents/agents/`.
+Each role card includes a copyable dispatch prompt.
 
 ## Work Classification
 
@@ -46,4 +46,3 @@ Run the smallest relevant check first:
 - targeted API/UI tests once they exist
 
 If a check cannot run, state why and document the residual risk.
-

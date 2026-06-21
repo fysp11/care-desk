@@ -15,6 +15,16 @@
 Cloud hosting is a deployment target category, not a single versioned library.
 Versioning applies to the chosen CLI, runtime, framework, and build tools.
 
+## Important Changes Since Prior Version
+
+Prior: N/A; latest researched: N/A.
+
+- Cloud hosting is not versioned as a single tool.
+- Risk depends on the selected platform, runtime, build image, database hosting,
+  environment-variable model, CORS, and secrets handling.
+- For this case, hosting remains an optional bonus. A reliable local vertical
+  slice with tests and documented cuts is higher signal than a fragile deploy.
+
 ## Status
 
 Optional deliverable.

@@ -12,6 +12,18 @@
 |---|---:|---|---|
 | `bcrypt` | `6.0.0` | 2026-06-21 | [npm registry](https://registry.npmjs.org/bcrypt/latest) |
 
+## Important Changes Since Prior Version
+
+Prior: `5.1.x`; latest researched: `6.0.0`.
+
+- bcrypt 6 drops support for Node 16 and older.
+- Packaging moved away from `node-pre-gyp` toward prebuilt binaries shipped with
+  the package.
+- Main risk is native-module install/runtime behavior in Docker, Alpine, and CI.
+- For this case, verify seeded-user login tests and container install behavior.
+
+Source: [bcrypt changelog](https://raw.githubusercontent.com/kelektiv/node.bcrypt.js/master/CHANGELOG.md).
+
 ## Status
 
 Required capability example.

@@ -12,6 +12,19 @@
 |---|---:|---|---|
 | `class-validator` | `0.15.1` | 2026-06-21 | [npm registry](https://registry.npmjs.org/class-validator/latest) |
 
+## Important Changes Since Prior Version
+
+Prior: `0.14.x`; latest researched: `0.15.1`.
+
+- `@IsIBAN()` changed its options signature, which can break existing decorator
+  usage.
+- The 0.14 baseline already made `forbidUnknownValues` default to true, which
+  can affect validation groups and nested DTOs.
+- For this case, retest patient create/update DTOs, nested objects, PATCH DTOs,
+  and any group-based validation.
+
+Source: [class-validator changelog](https://raw.githubusercontent.com/typestack/class-validator/develop/CHANGELOG.md).
+
 ## Status
 
 Required capability example.

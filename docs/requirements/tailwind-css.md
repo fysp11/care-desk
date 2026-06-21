@@ -12,6 +12,23 @@
 |---|---:|---|---|
 | `tailwindcss` | `4.3.1` | 2026-06-21 | [npm registry](https://registry.npmjs.org/tailwindcss/latest) |
 
+## Important Changes Since Prior Version
+
+Prior: `3.4.x`; latest researched: `4.3.1`.
+
+- Tailwind 4 uses a CSS-first setup with `@import "tailwindcss"` instead of
+  the old `@tailwind` directives.
+- The PostCSS plugin moved to `@tailwindcss/postcss`; the CLI moved to
+  `@tailwindcss/cli`.
+- Some deprecated utilities were removed and visual defaults changed for
+  borders, divide colors, rings, shadows, radius, and blur scales.
+- Browser support floor is higher.
+- For this case, explicitly verify focus rings, validation states, table
+  borders, badges, and responsive patient-table behavior.
+
+Sources: [Tailwind v4 upgrade guide](https://tailwindcss.com/docs/upgrade-guide),
+[Tailwind releases](https://github.com/tailwindlabs/tailwindcss/releases).
+
 ## Status
 
 Preferred.

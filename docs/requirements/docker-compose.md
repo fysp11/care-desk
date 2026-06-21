@@ -14,6 +14,23 @@
 
 Note: Docker Desktop may bundle Docker Compose on its own release cadence.
 
+## Important Changes Since Prior Version
+
+Prior: Docker Compose `2.27.x`; latest researched: `v5.1.4`.
+
+- Docker skipped Compose 3.x and 4.x to avoid confusion with legacy Compose file
+  versions.
+- Compose v5 removes its internal builder and delegates builds to Docker
+  Bake/buildx.
+- v5.1.4 is mostly fixes around Docker Desktop proxy routing, publish env-value
+  warnings, and provider stop hooks.
+- For this case, keep Compose boring: PostgreSQL service, env placeholders, no
+  obsolete top-level `version`, and no secrets committed.
+
+Sources: [Docker Compose v5.0.0](https://github.com/docker/compose/releases/tag/v5.0.0),
+[Docker Compose v5.1.4](https://github.com/docker/compose/releases/tag/v5.1.4),
+[Docker Compose v2.27.0](https://github.com/docker/compose/releases/tag/v2.27.0).
+
 ## Status
 
 Bonus.

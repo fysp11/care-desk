@@ -37,6 +37,26 @@ Checked on 2026-06-21.
 | Docker / Docker Compose | Docker Compose `2.27.x` | Docker Compose `v5.1.4` |
 | Cloud hosting | N/A | N/A |
 
+## Upgrade Impact Summary
+
+| Requirement | Most important change | Case-challenge impact |
+|---|---|---|
+| Next.js | React 19 baseline, async request APIs, Turbopack default, middleware-to-proxy shift | Keep auth/session and patient data fetching simple, explicit, and testable. |
+| TypeScript | Stricter/default config changes and more explicit project setup | Use explicit frontend/backend `tsconfig` files and run typecheck early. |
+| NestJS | Node 20+, Express v5 default, changed route/query parsing behavior | Integration-test auth guards, middleware order, and patient list query params. |
+| PostgreSQL | Major upgrade path plus new `uuidv7()` and temporal/index features | Useful for patient IDs, but real major DB upgrades remain operationally high risk. |
+| JWT authentication | `@nestjs/jwt` aligns with Nest 11; `jsonwebtoken` v9 security baseline remains important | Pin algorithms, avoid weak keys, and test expired/forged token paths. |
+| bcrypt | Node <=16 dropped; native packaging changed | Verify Docker/CI install and seeded-login tests. |
+| class-validator | `@IsIBAN()` signature change; unknown-value behavior remains important | Retest DTOs, nested validation, PATCH DTOs, and validation groups. |
+| zod + react-hook-form | Zod 4 error/default semantics changed; RHF v7 behavior fixes around defaults/dirty state | Audit form error mapping, edit defaults, reset/cancel, and API payload shape. |
+| Tailwind CSS | v4 CSS-first setup, package split, removed utilities, visual default changes | Manually verify focus rings, validation states, tables, and responsive behavior. |
+| shadcn/ui | CLI/registry workflow, not a versioned component runtime | Review generated components as owned source and add only needed primitives. |
+| Prisma | v7 ESM/config/client-generation/driver-adapter changes | Largest app-code migration risk; audit `PrismaService`, migrations, seed, errors, and tests. |
+| ESLint | v10 requires Node 20.19+ and flat config only | Start with flat config and keep linting scoped to the timebox. |
+| Prettier | No major break; mostly formatting/parser fixes | Low risk; pin and run consistently to avoid noisy diffs. |
+| Docker / Docker Compose | v5 delegates builds to Bake/buildx | Keep Compose minimal for PostgreSQL/local dev and test on installed Docker Desktop/CLI. |
+| Cloud hosting | Still not a versioned tool | Optional bonus only; avoid spending time before local proof is stable. |
+
 ## Inventory
 
 | Requirement | Status | File |

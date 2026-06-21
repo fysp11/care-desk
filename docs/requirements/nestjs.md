@@ -12,6 +12,21 @@
 |---|---:|---|---|
 | `@nestjs/core` | `11.1.27` | 2026-06-21 | [npm registry](https://registry.npmjs.org/@nestjs/core/latest) |
 
+## Important Changes Since Prior Version
+
+Prior: `10.x`; latest researched: `11.1.27`.
+
+- Nest 11 requires Node 20+.
+- Express v5 is now the default for `@nestjs/platform-express`.
+- Route wildcard and optional segment syntax changed; regex-style route
+  patterns need review.
+- Express query parsing defaults changed to `simple`, which can affect nested
+  filters.
+- For this case, test auth middleware order, role guards, and
+  `GET /patients` query parsing with integration tests.
+
+Source: [Nest migration guide](https://docs.nestjs.com/migration-guide).
+
 ## Status
 
 Required.

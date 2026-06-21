@@ -14,6 +14,27 @@
 | `zod` | `4.4.3` | 2026-06-21 | [npm registry](https://registry.npmjs.org/zod/latest) |
 | `react-hook-form` | `7.80.0` | 2026-06-21 | [npm registry](https://registry.npmjs.org/react-hook-form/latest) |
 
+## Important Changes Since Prior Version
+
+Prior: `zod@3.23.x`, `react-hook-form@7.52.x`; latest researched:
+`zod@4.4.3`, `react-hook-form@7.80.0`.
+
+- Zod 4 changes error customization, removes `ZodError.errors` in favor of
+  `.issues`, and deprecates older formatting patterns.
+- Zod defaults and optional object fields can produce different parsed payloads
+  than Zod 3.
+- Zod string helpers shifted toward top-level helpers such as `z.email()` and
+  stricter UUID handling.
+- React Hook Form remains v7, with mostly fixes and additions around field
+  arrays, default/reset behavior, dirty tracking, async resolver timing, and
+  StrictMode/fast-refresh behavior.
+- For this case, test edit-form defaults, reset/cancel, client error mapping,
+  and server DTO alignment.
+
+Sources: [Zod 4 migration guide](https://zod.dev/v4/changelog),
+[Zod 4 notes](https://zod.dev/v4),
+[React Hook Form 7.80.0 release](https://github.com/react-hook-form/react-hook-form/releases/tag/v7.80.0).
+
 ## Status
 
 Required capability example.

@@ -12,6 +12,21 @@
 |---|---:|---|---|
 | `typescript` | `6.0.3` | 2026-06-21 | [npm registry](https://registry.npmjs.org/typescript/latest) |
 
+## Important Changes Since Prior Version
+
+Prior: `5.5.x`; latest researched: `6.0.3`.
+
+- TypeScript 6 changes several defaults, including stricter behavior, modern
+  module/target assumptions, and `noUncheckedSideEffectImports`.
+- Projects may need explicit Node types and explicit `rootDir`.
+- Running `tsc file.ts` when a `tsconfig.json` exists now needs more deliberate
+  invocation.
+- For this case, use separate explicit frontend/backend `tsconfig` files and
+  run typecheck early to catch DTO and form-contract drift.
+
+Sources: [TypeScript 6 announcement](https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/),
+[TypeScript 6.0.3 release](https://github.com/microsoft/TypeScript/releases/tag/v6.0.3).
+
 ## Status
 
 Required.

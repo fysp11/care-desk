@@ -15,6 +15,25 @@
 Note: PostgreSQL `19 Beta 1` exists, but the stable production target is
 `18.4`.
 
+## Important Changes Since Prior Version
+
+Prior: `16.x`; latest researched: `18.4` stable.
+
+- Moving from 16 to 18 is a major database upgrade that requires `pg_upgrade`,
+  dump/restore, or logical replication.
+- PostgreSQL 18 enables data checksums by default for new clusters, which
+  matters for upgrade planning.
+- New useful capabilities include `uuidv7()`, skip scans for multicolumn
+  B-tree indexes, virtual generated columns by default, and temporal
+  constraints.
+- PostgreSQL 18.4 includes security fixes; patch upgrades within 18.x do not
+  require dump/restore.
+- For this case, `uuidv7()` is a strong patient ID candidate, but any real DB
+  upgrade remains operationally high risk.
+
+Sources: [PostgreSQL 18 release notes](https://www.postgresql.org/docs/current/release-18.html),
+[PostgreSQL 18.4 release notes](https://www.postgresql.org/docs/current/release-18-4.html).
+
 ## Status
 
 Required.

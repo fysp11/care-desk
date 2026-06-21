@@ -17,6 +17,25 @@ Note: shadcn/ui is not a single versioned component library. The practical
 version target is the `shadcn` CLI/registry workflow used to copy components
 into the app.
 
+## Important Changes Since Prior Version
+
+Prior: no single versioned component library; latest researched: `shadcn` CLI
+`4.11.0`.
+
+- shadcn/ui remains copied component source rather than a normal runtime
+  component dependency.
+- The modern CLI supports workflows such as `init`, `add`, `view`, `search`,
+  `migrate`, `diff`, `docs`, presets, and registry usage.
+- New generated components may differ from older copied components and will not
+  update existing local components automatically.
+- Tailwind 4 and modern shadcn conventions can introduce styling differences.
+- For this case, use the CLI selectively for accessible primitives and review
+  generated source like application code.
+
+Sources: [shadcn CLI docs](https://ui.shadcn.com/docs/cli),
+[shadcn changelog](https://ui.shadcn.com/docs/changelog),
+[shadcn 4.11.0 release](https://github.com/shadcn-ui/ui/releases/tag/shadcn%404.11.0).
+
 ## Status
 
 Preferred.

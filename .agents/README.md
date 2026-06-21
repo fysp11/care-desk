@@ -29,10 +29,25 @@ For this project, `.agents/` is a local artifact namespace that keeps heavier
 workflow details out of the root README while making them easy for agents to
 discover.
 
+## Research Sources
+
+- [Configuring Agentic AI Coding Tools](https://arxiv.org/abs/2602.14690):
+  context files dominate repository configuration, with `AGENTS.md` emerging as
+  an interoperable standard while skills and subagents are usually shallowly
+  adopted.
+- [Configuration Smells in AGENTS.md Files](https://arxiv.org/abs/2606.15828):
+  common risks include context bloat, skill leakage, lint leakage, and
+  conflicting instructions.
+- [On the Use of Agentic Coding Manifests](https://arxiv.org/abs/2509.14744):
+  observed manifests tend to use shallow hierarchies and focus on commands,
+  implementation notes, architecture, and workflow guidance.
+
 ## Directory Map
 
 | Path | Purpose |
 |---|---|
+| `agents/` | Role cards for scoped subagent delegation. |
+| `skills/` | Repo-local skill definitions for recurring workflows. |
 | `rules/latest-library-implementation.md` | Guard against stale library APIs and unsafe generated code. |
 | `workflows/patient-management-case.md` | End-to-end workflow for building the case challenge. |
 | `checklists/implementation-gates.md` | Verification gates agents must satisfy before calling work done. |
@@ -55,5 +70,8 @@ Before implementation work, read:
 - `docs/requirements/README.md`
 - `.agents/rules/latest-library-implementation.md`
 
-Then select one workflow or prompt from this directory if it matches the task.
+For repeated workflows, prefer the smaller skill entrypoints under
+`.agents/skills/`. For delegation, use `.agents/agents/` role cards and the
+matching prompt in `.agents/prompts/`.
 
+Then select one workflow or prompt from this directory if it matches the task.

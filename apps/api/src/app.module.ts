@@ -1,4 +1,11 @@
+import 'reflect-metadata';
+
 import { Module } from '@nestjs/common';
 
-@Module({})
+import { AuthModule } from './auth/auth.module.js';
+
 export class AppModule {}
+
+Module({
+  imports: [AuthModule],
+})(AppModule);

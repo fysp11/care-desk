@@ -18,6 +18,26 @@ Before implementation work, read:
 For role-specific work, use the matching artifact under `.agents/agents/`.
 Each role card includes a copyable dispatch prompt.
 
+## Delegation
+
+When working on a specific task from a roadmap phase/wave, prefer scoped
+subagents for context management:
+
+- Start with `.agents/agents/architect.md` for non-trivial phase planning or
+  tradeoffs before implementation.
+- Delegate backend, frontend, and review work to the matching role cards under
+  `.agents/agents/`.
+- Give each subagent one bounded task, the smallest relevant files, and the
+  matching phase/wave file; avoid dumping the full repository context.
+- Run independent backend/frontend/docs/test tasks in parallel when their write
+  sets do not overlap and the API or contract boundary is clear.
+- Do not run parallel implementation agents against the same files or unresolved
+  contracts; settle the contract first, then split work.
+- Use reviewer passes for auth/RBAC, validation, generated UI, and any slice
+  that claims completion.
+- Synthesize subagent outputs in the main thread, then run the repo's smallest
+  relevant verification command before reporting completion.
+
 ## Work Classification
 
 | Risk | Examples | Default behavior |

@@ -24,11 +24,12 @@ Checked on 2026-06-21.
 | Item | Current state |
 |---|---|
 | Repository contents | Docs and agent artifacts only. No app source tree yet. |
-| `package.json` | Not present. |
-| `bun.lock` | Not present. |
-| App folders | `apps/api`, `apps/web`, `packages/shared`, and `prisma` are not present. |
-| README scripts | README names `bun run dev`, `bun run start`, `bun test`, and `bun run typecheck`, but no package scripts exist yet. |
+| `package.json` | Present with Bun workspaces and root scripts. |
+| `bun.lock` | Present after `bun install`. |
+| App folders | `apps/api`, `apps/web`, `packages/shared`, and `prisma` are present. |
+| README scripts | README scripts match root package scripts. |
 | Local Bun | `bun --version` returned `1.3.14`. |
+| Local Node | `node --version` returned `v22.22.3`, satisfying the Node 20.19+ floor. |
 | Version inventory | `docs/requirements/README.md` is present with latest researched targets. |
 | Roadmap file | `docs/roadmap.md` is persisted separately and should remain editable while wave files evolve. |
 
@@ -85,15 +86,15 @@ Use `docs/requirements/README.md` as the source of truth for current targets.
 
 | Status | Task | Owner artifact | Notes |
 |---|---|---|---|
-| Done | Capture current repo baseline. | Main thread | Repo has docs/artifacts but no implementation scaffold. |
-| Pending | Finalize workspace scaffold contract. | `.agents/agents/architect.md` | Confirm app layout, scripts, and first checks. |
-| Pending | Create root package/workspace files. | Main thread or architect-guided implementation | Use Bun, explicit scripts, no secrets. |
-| Pending | Add backend scaffold boundary. | `.agents/agents/backend.md` | Do not implement auth yet; just prepare surface and verification. |
-| Pending | Add frontend scaffold boundary. | `.agents/agents/frontend.md` | Do not build UI yet; prepare app boundary and verification. |
-| Pending | Add shared contract package placeholder if useful. | Architect/backend/frontend | Keep it minimal; avoid abstraction before contract exists. |
-| Pending | Add Prisma placeholder/config decision. | `.agents/agents/backend.md` | Prisma 7 requires extra verification before real schema work. |
-| Pending | Align README scripts with actual package scripts. | Main thread | README must not advertise nonexistent commands after wave completion. |
-| Pending | Run first scaffold verification. | Main thread | Smallest useful checks: `bun install`, `bun run typecheck`, `bun test` once scripts exist. |
+| Done | Capture current repo baseline. | Main thread | Repo began as docs/artifacts only. |
+| Done | Finalize workspace scaffold contract. | `.agents/agents/architect.md` | App layout, scripts, and first checks are captured here. |
+| Done | Create root package/workspace files. | Main thread | Uses Bun workspaces, explicit scripts, no secrets. |
+| Done | Add backend scaffold boundary. | `.agents/agents/backend.md` | NestJS API shell only; no auth or patient API yet. |
+| Done | Add frontend scaffold boundary. | `.agents/agents/frontend.md` | Next.js app shell only; no login or patient workflow yet. |
+| Done | Add shared contract package placeholder if useful. | Main thread | Minimal `UserRole` type only, to prove package boundary. |
+| Done | Add Prisma placeholder/config decision. | `.agents/agents/backend.md` | Prisma 7 is deferred until persistence can be verified as a slice. |
+| Done | Align README scripts with actual package scripts. | Main thread | README no longer advertises unimplemented endpoints. |
+| Done | Run first scaffold verification. | Main thread | `bun install`, `bun run typecheck`, `bun test`, and `bun run build` passed. |
 
 ## Subagent Split
 
@@ -113,16 +114,20 @@ scaffold work may run in parallel if their write sets are separate.
 
 Before Wave 0 is complete:
 
-- [ ] Relevant requirement files were read for any installed/configured tool.
-- [ ] Root `package.json` exists with scripts matching README.
-- [ ] Workspace or app package boundaries are explicit.
-- [ ] TypeScript configs are explicit and scoped.
-- [ ] ESLint/Prettier setup is either present or intentionally deferred.
-- [ ] `bun install` succeeds.
-- [ ] `bun run typecheck` succeeds or has a documented scaffold limitation.
-- [ ] `bun test` succeeds or has a documented scaffold limitation.
-- [ ] README setup/run/test commands match actual scripts.
-- [ ] No real credentials, `.env*` contents, real patient data, or production
+- [x] Relevant requirement files were read for any installed/configured tool.
+- [x] Root `package.json` exists with scripts matching README.
+- [x] Workspace or app package boundaries are explicit.
+- [x] TypeScript configs are explicit and scoped.
+- [x] ESLint/Prettier setup is intentionally deferred to avoid spending the
+  scaffold wave on non-blocking tooling.
+- [x] `bun install` succeeds.
+- [x] `bun run typecheck` succeeds.
+- [x] `bun test` succeeds.
+- [x] `bun run build` succeeds when run outside the sandbox; the sandboxed
+  attempt failed because Next/Turbopack/PostCSS hit an internal
+  process/port-binding restriction.
+- [x] README setup/run/test commands match actual scripts.
+- [x] No real credentials, `.env*` contents, real patient data, or production
   mutations are introduced.
 
 ## Exit Criteria

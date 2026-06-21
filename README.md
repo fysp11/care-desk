@@ -37,16 +37,24 @@ Roadmap: [docs/roadmap.md](docs/roadmap.md)
 ## Requirements
 
 - Bun 1.3+
+- Node.js 20.19+
 
 ## Scripts
 
-- `bun run dev` starts the service in watch mode.
-- `bun run start` starts the service once.
+- `bun run dev` starts the API scaffold in watch mode.
+- `bun run dev:api` starts the API scaffold in watch mode.
+- `bun run dev:web` starts the web scaffold in watch mode.
+- `bun run start` starts the built API scaffold.
+- `bun run start:web` starts the built web scaffold.
 - `bun test` runs the test suite.
 - `bun run typecheck` checks TypeScript types.
 
-## API
+## Current Scaffold
 
-- `GET /` returns service metadata.
-- `GET /health` returns health status.
-- `GET /tickets` returns starter care desk tickets.
+- `apps/api` contains the NestJS API boundary.
+- `apps/web` contains the Next.js frontend boundary.
+- `packages/shared` contains shared TypeScript contracts.
+- `prisma` is reserved for the database wave.
+
+Patient-management endpoints are intentionally deferred until the backend trust
+boundary wave.

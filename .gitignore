@@ -4,5 +4,7 @@ node_modules/
 !.env.example
 dist/
 coverage/
+.next/
+*.tsbuildinfo
 .DS_Store
 *.log

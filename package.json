@@ -1,0 +1,33 @@
+{
+  "name": "care-desk",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.3.14",
+  "engines": {
+    "node": ">=20.19.0",
+    "bun": ">=1.3.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run dev:api",
+    "dev:api": "bun --filter @care-desk/api dev",
+    "dev:web": "bun --filter @care-desk/web dev",
+    "build": "bun run build:shared && bun run build:api && bun run build:web",
+    "build:api": "bun --filter @care-desk/api build",
+    "build:shared": "bun --filter @care-desk/shared build",
+    "build:web": "bun --filter @care-desk/web build",
+    "start": "bun run start:api",
+    "start:api": "bun --filter @care-desk/api start",
+    "start:web": "bun --filter @care-desk/web start",
+    "test": "bun --filter @care-desk/shared test && bun --filter @care-desk/api test && bun --filter @care-desk/web test",
+    "typecheck": "bun --filter @care-desk/shared typecheck && bun --filter @care-desk/api typecheck && bun --filter @care-desk/web typecheck"
+  },
+  "devDependencies": {
+    "@types/bun": "1.3.14",
+    "@types/node": "^22.0.0",
+    "typescript": "6.0.3"
+  }
+}

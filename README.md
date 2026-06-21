@@ -11,6 +11,8 @@ is useful but intentionally bounded.
 
 Resolution doc: [docs/challenge-resolution.md](docs/challenge-resolution.md)
 
+Roadmap: [docs/roadmap.md](docs/roadmap.md)
+
 ### Delivery Thesis
 
 - Lead with the secure vertical slice.

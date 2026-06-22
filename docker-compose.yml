@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: care_desk
+      POSTGRES_PASSWORD: care_desk_password
+      POSTGRES_USER: care_desk_user
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U care_desk_user -d care_desk"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    image: oven/bun:1
+    working_dir: /app
+    command: sh -c "bun install --frozen-lockfile && bun run dev:api"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://care_desk_user:care_desk_password@postgres:5432/care_desk
+      NODE_ENV: development
+      PORT: 3001
+    volumes:
+      - .:/app
+      - bun-cache:/tmp/bun-cache
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+
+  web:
+    image: oven/bun:1
+    working_dir: /app
+    command: sh -c "bun install --frozen-lockfile && bun run dev:web -- --hostname 0.0.0.0 --port 3000"
+    depends_on:
+      api:
+        condition: service_started
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:3001
+      PORT: 3000
+    volumes:
+      - .:/app
+      - bun-cache:/tmp/bun-cache
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  bun-cache:

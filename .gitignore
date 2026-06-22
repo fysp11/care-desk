@@ -3,7 +3,11 @@ node_modules/
 .env.*
 !.env.example
 dist/
+apps/api/src/generated/
 coverage/
+reports/
+apps/web/playwright-report/
+apps/web/test-results/
 .next/
 *.tsbuildinfo
 .DS_Store

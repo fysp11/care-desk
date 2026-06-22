@@ -13,14 +13,14 @@ See also:
 
 ## What Shipped
 
-| Area | Status |
-|---|---|
-| Auth | JWT login for seeded demo users, bcrypt-hashed seeded passwords, token expiry handling, logout. |
-| RBAC | Backend guards enforce `401` and `403`; frontend role gating is UX only. |
+| Area        | Status                                                                                                                          |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Auth        | JWT login for seeded demo users, bcrypt-hashed seeded passwords, token expiry handling, logout.                                 |
+| RBAC        | Backend guards enforce `401` and `403`; frontend role gating is UX only.                                                        |
 | Patient API | Protected list, details, create, update, and delete endpoints with search, sort, pagination, validation, and normalized errors. |
-| Frontend | Next.js patient workflow with login, table, details, admin create/edit/delete, user view-only mode, loading/empty/error states. |
-| Validation | Server DTO validation plus Zod 4 and React Hook Form validation for patient forms. |
-| Reliability | Local opt-in latency/failure simulation, recoverable list/detail/form failures, optimistic delete rollback. |
+| Frontend    | Next.js patient workflow with login, table, details, admin create/edit/delete, user view-only mode, loading/empty/error states. |
+| Validation  | Server DTO validation plus Zod 4 and React Hook Form validation for patient forms.                                              |
+| Reliability | Local opt-in latency/failure simulation, recoverable list/detail/form failures, optimistic delete rollback.                     |
 
 ## Prerequisites
 
@@ -33,6 +33,23 @@ The repository is configured for Bun workspaces.
 
 ```bash
 bun install
+```
+
+For Wave 7 DB-backed persistence verification:
+
+```bash
+cp .env.example .env
+source .env
+bun run compose:up
+bun run db:migrate:deploy
+bun run db:generate
+bun run db:seed
+```
+
+Run everything (PostgreSQL + API + web) from compose:
+
+```bash
+bun run compose:up
 ```
 
 ## Run Locally
@@ -63,20 +80,56 @@ Next dev serves the web app on:
 These credentials are public local fixtures only. They are not production
 credentials and are not read from secret files.
 
-| Role | Email | Password |
-|---|---|---|
+| Role  | Email               | Password         |
+| ----- | ------------------- | ---------------- |
 | Admin | `admin@example.com` | `admin-password` |
-| User | `user@example.com` | `user-password` |
+| User  | `user@example.com`  | `user-password`  |
 
 ## Checks
 
 Run the normal verification commands from the repo root:
 
 ```bash
+bun run check:quality
 bun test
 bun run typecheck
+bun run mutation
 bun run build
 ```
+
+Run the mutation gate directly when working on the scoped web validation and
+workflow tests, DB-free API controller metadata, DTO validation, module DI,
+repository, patient service, or validation-pipe slices:
+
+```bash
+bun run mutation:dry-run
+bun run mutation
+bun run mutation:api:controller:dry-run
+bun run mutation:api:controller
+bun run mutation:api:dto:dry-run
+bun run mutation:api:dto
+bun run mutation:api:module-di:dry-run
+bun run mutation:api:module-di
+bun run mutation:api:repository:dry-run
+bun run mutation:api:repository
+bun run mutation:api:service:dry-run
+bun run mutation:api:service
+bun run mutation:api:validation:dry-run
+bun run mutation:api:validation
+```
+
+The StrykerJS gates mutate tested web workflow/schema logic in `apps/web/lib/`,
+DB-free API controller metadata, DTO validation, patient module DI, repository
+query determinism, patient service logic, validation-pipe error shaping, and the
+PostgreSQL-backed API path. Each mutation gate requires a mutation score of at
+least 90%. Use `bun run mutation:api:controller`, `bun run mutation:api:dto`,
+`bun run mutation:api:module-di`, `bun run mutation:api:repository`, `bun run
+mutation:api:service`, or `bun run mutation:api:validation` for fast local API
+validation before running the Docker-backed API mutation gate.
+
+`bun run check:quality`, `bun run mutation`, and `bun run mutation:dry-run`
+include the PostgreSQL-backed API mutation gate through `db:prepare`, so they
+require Docker Compose and a reachable local PostgreSQL container.
 
 `bun run build` may require running outside this sandboxed agent environment.
 After Wave 4, the web build is blocked in the sandbox because Turbopack tries
@@ -86,27 +139,29 @@ before submission.
 
 ## Verification Evidence
 
-| Evidence | Result |
-|---|---|
-| API tests | Passed, 23 API tests. |
-| API typecheck | Passed after the Wave 4 CORS/reliability work. |
-| Web tests | Passed, 19 web tests. |
-| Web typecheck | Passed. |
-| Web build | Turbopack path fails in this sandbox (`Operation not permitted`); webpack path succeeds with `bunx next build --webpack` from `apps/web`. |
-| Wave 4 build | Shared and API builds pass; web `next build` passes with `--webpack`. Turbopack still fails in this sandbox and should be rerun in a non-restricted environment before final submission if needed. |
+| Evidence              | Result                                                                                           |
+| --------------------- | ------------------------------------------------------------------------------------------------ |
+| API focused tests     | DB-free DTO, module DI, repository, and service tests pass locally.                              |
+| API typecheck         | Passes locally through `bun run typecheck` after Prisma client generation.                       |
+| Web focused tests     | Web unit tests pass locally, including API client, workflow, schema, session, and reliability.   |
+| Web typecheck         | Passes locally through `bun run typecheck`.                                                      |
+| Focused mutation      | Web, API controller, DTO, module DI, repository, and service gates pass locally at or above 90%. |
+| DB-backed API gate    | Requires Docker Compose and local PostgreSQL through `db:prepare`; rerun where Docker is usable. |
+| Web build             | Not run in this environment; rerun outside sandbox as needed.                                    |
+| Mutation report paths | StrykerJS writes per-gate local reports under `reports/mutation*/`.                              |
 
 ## Known Cuts
 
-| Cut | Current decision | Next hardening step |
-|---|---|---|
-| PostgreSQL/Prisma | Deferred behind the repository boundary; current patient data uses deterministic demo storage. | Replace the repository with PostgreSQL and Prisma 7, add migrations, indexes, seeds, and parity tests. |
-| Production secrets/env management | Not included. | Add secret management, rotation, and deployment-specific configuration. |
-| Cloud hosting | Not included. | Deploy only after local build/test proof is refreshed. |
-| Docker | Not included. | Add minimal Compose for API/web/PostgreSQL if deployment or reviewer setup needs it. |
-| Browser E2E matrix | Not included. | Add Playwright coverage for admin/user workflows and responsive breakpoints. |
-| Audit log and soft delete | Not included. | Add append-only patient events and archive semantics before clinical use. |
-| Refresh tokens/password reset | Not included. | Add a production identity lifecycle if auth scope expands. |
-| Multi-tenancy | Not included. | Add organization scoping before any multi-customer data model. |
+| Cut                               | Current decision                                                                                  | Next hardening step                                                                                 |
+| --------------------------------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| PostgreSQL/Prisma                 | In active hardening (Wave 7): patient persistence now uses PostgreSQL + Prisma 7.                 | Keep contract-level assertions stable while verifying migration, seed/reset, and compose DB health. |
+| Production secrets/env management | Not included.                                                                                     | Add secret management, rotation, and deployment-specific configuration.                             |
+| Cloud hosting                     | Not included.                                                                                     | Deploy only after local build/test proof is refreshed.                                              |
+| Docker Compose                    | API + web services are now included in `docker-compose.yml` alongside PostgreSQL. | Keep host/in-container endpoint alignment and health checks aligned as compose hardening continues. |
+| Browser E2E matrix                | Not included.                                                                                     | Add Playwright coverage for admin/user workflows and responsive breakpoints.                        |
+| Audit log and soft delete         | Not included.                                                                                     | Add append-only patient events and archive semantics before clinical use.                           |
+| Refresh tokens/password reset     | Not included.                                                                                     | Add a production identity lifecycle if auth scope expands.                                          |
+| Multi-tenancy                     | Not included.                                                                                     | Add organization scoping before any multi-customer data model.                                      |
 
 ## Interview Defense Notes
 
@@ -114,8 +169,8 @@ before submission.
   patient mutations still depend on server-side guards.
 - The timebox favored verified auth, RBAC, validation, patient CRUD, and
   failure recovery over optional infrastructure.
-- PostgreSQL/Prisma is the clearest next hardening step. The current repository
-  boundary keeps that replacement isolated and testable.
+- PostgreSQL/Prisma is the active Wave 7 hardening path. Repo tests are written to
+  run against deterministic DB reset behavior and Prisma-backed persistence.
 - Demo credentials and demo patients are fixtures only; no real patient data or
   production secrets are part of the delivery.
 - AI assistance is treated as implementation acceleration, not ownership

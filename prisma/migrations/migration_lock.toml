@@ -1,0 +1,4 @@
+# Prisma migration lockfile
+# Keep this file with the migration history.
+
+provider = "postgresql"

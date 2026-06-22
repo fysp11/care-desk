@@ -1,0 +1,34 @@
+// @ts-check
+
+/** @type {import('@stryker-mutator/api/core').PartialStrykerOptions} */
+const config = {
+  cleanTempDir: 'always',
+  commandRunner: {
+    command:
+      'bun --cwd apps/api db:generate && bun --cwd apps/api test ./test/patients-controller-metadata.test.ts ./test/auth-controller-metadata.test.ts',
+  },
+  concurrency: 1,
+  coverageAnalysis: 'off',
+  ignorePatterns: [
+    'apps/api/src/generated/**',
+    '**/dist/**',
+    'coverage/**',
+    'reports/**',
+  ],
+  jsonReporter: { fileName: 'reports/mutation-api-controller/mutation.json' },
+  htmlReporter: { fileName: 'reports/mutation-api-controller/index.html' },
+  mutate: [
+    'apps/api/src/auth/auth.controller.ts:18-36',
+    'apps/api/src/auth/auth.controller.ts:39-45',
+    'apps/api/src/auth/auth.controller.ts:48-83',
+    'apps/api/src/patients/patients.controller.ts:21-43',
+    'apps/api/src/patients/patients.controller.ts:46-52',
+    'apps/api/src/patients/patients.controller.ts:67-179',
+  ],
+  reporters: ['clear-text', 'progress', 'json', 'html'],
+  testRunner: 'command',
+  thresholds: { break: 90, high: 90, low: 90 },
+  timeoutMS: 20000,
+};
+
+export default config;

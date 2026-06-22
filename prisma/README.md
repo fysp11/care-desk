@@ -1,8 +1,11 @@
-# Prisma Placeholder
+# Prisma Folder
 
-Prisma is reserved for the database wave, not configured in Wave 0.
+This folder contains the Wave 7 persistence hardening assets for PostgreSQL and
+Prisma 7:
 
-The requirements inventory targets Prisma `7.8.0`, which changes client
-generation, ESM behavior, configuration, and driver-adapter setup. Add
-`schema.prisma`, `prisma.config.ts`, generated-client output, migrations, and
-seed flow together when the patient persistence slice is ready to verify them.
+- `schema.prisma`
+- `migrations/`
+- `seed.ts`
+
+Use this folder with the root `prisma.config.ts`, API bootstrap documented in
+`docs/roadmap-waves/`, and `docs/roadmap.md`.

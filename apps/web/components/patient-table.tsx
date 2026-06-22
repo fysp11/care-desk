@@ -60,9 +60,19 @@ export function PatientTable({
                   ? 'ascending'
                   : 'descending'
                 : 'not sorted';
+              const ariaSort = isSorted
+                ? sortDir === 'asc'
+                  ? 'ascending'
+                  : 'descending'
+                : 'none';
 
               return (
-                <th className="px-4 py-3 font-semibold" key={column.field} scope="col">
+                <th
+                  aria-sort={ariaSort}
+                  className="px-4 py-3 font-semibold"
+                  key={column.field}
+                  scope="col"
+                >
                   <button
                     aria-label={`Sort by ${column.label}, currently ${indicator}`}
                     className="inline-flex items-center gap-1 rounded-sm text-left transition hover:text-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"

@@ -1,5 +1,10 @@
 import type { StoredSession } from './session';
-import type { Patient, PatientListQuery, PatientSortBy } from './types';
+import type {
+  Patient,
+  PatientListQuery,
+  PatientSortBy,
+  PatientWriteInput,
+} from './types';
 
 export type WorkflowView = 'checking-session' | 'login' | 'patients';
 
@@ -51,6 +56,52 @@ export const removePatientById = (
   patientId: string,
 ): readonly Patient[] =>
   patients.filter((patient) => patient.id !== patientId);
+
+export const createOptimisticPatient = (
+  payload: PatientWriteInput,
+  patientId: string,
+  timestamp: string,
+): Patient => ({
+  ...payload,
+  createdAt: timestamp,
+  id: patientId,
+  updatedAt: timestamp,
+});
+
+export const addPatientToCurrentPage = (
+  patients: readonly Patient[],
+  patient: Patient,
+  limit: number,
+): readonly Patient[] => [patient, ...patients].slice(0, Math.max(1, limit));
+
+export const replacePatientById = (
+  patients: readonly Patient[],
+  replacement: Patient,
+): readonly Patient[] =>
+  patients.map((patient) =>
+    patient.id === replacement.id ? replacement : patient,
+  );
+
+export const replacePatientByIdOrAddToCurrentPage = (
+  patients: readonly Patient[],
+  patientId: string,
+  replacement: Patient,
+  limit: number,
+): readonly Patient[] => {
+  let didReplace = false;
+  const replacedPatients = patients.map((patient) => {
+    if (patient.id !== patientId) {
+      return patient;
+    }
+
+    didReplace = true;
+    return replacement;
+  });
+
+  return didReplace
+    ? replacedPatients
+    : addPatientToCurrentPage(replacedPatients, replacement, limit);
+};
 
 export const getOptimisticDeleteTotal = (
   totalPatients: number,

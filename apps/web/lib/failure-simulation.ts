@@ -1,8 +1,7 @@
 import { ApiError } from './api';
 import type { ValidationDetails } from './types';
 
-export const FAILURE_SIMULATION_STORAGE_KEY =
-  'care-desk-failure-simulation';
+export const FAILURE_SIMULATION_STORAGE_KEY = 'care-desk-failure-simulation';
 
 export const failureSimulationTargets = [
   'list',
@@ -12,12 +11,9 @@ export const failureSimulationTargets = [
   'delete',
 ] as const;
 
-export type FailureSimulationTarget =
-  (typeof failureSimulationTargets)[number];
+export type FailureSimulationTarget = (typeof failureSimulationTargets)[number];
 
-export type FailureSimulationTargetSelection =
-  | FailureSimulationTarget
-  | 'all';
+export type FailureSimulationTargetSelection = FailureSimulationTarget | 'all';
 
 export interface FailureSimulationSettings {
   readonly enabled: boolean;
@@ -45,14 +41,14 @@ const isTargetSelection = (
   value: unknown,
 ): value is FailureSimulationTargetSelection =>
   value === 'all' ||
-  failureSimulationTargets.some((target) => target === value);
+  failureSimulationTargets.includes(value as FailureSimulationTarget);
 
 const clampLatency = (value: unknown): number => {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    return defaultFailureSimulationSettings.latencyMs;
-  }
+  const latency = Number.isFinite(value)
+    ? (value as number)
+    : defaultFailureSimulationSettings.latencyMs;
 
-  return Math.min(maxLatencyMs, Math.max(0, Math.round(value)));
+  return Math.min(maxLatencyMs, Math.max(0, Math.round(latency)));
 };
 
 export const normalizeFailureSimulationSettings = (
@@ -77,14 +73,10 @@ export const normalizeFailureSimulationSettings = (
 export const readFailureSimulationSettings = (
   storage: FailureSimulationStorageLike,
 ): FailureSimulationSettings => {
-  const storedValue = storage.getItem(FAILURE_SIMULATION_STORAGE_KEY);
-
-  if (!storedValue) {
-    return defaultFailureSimulationSettings;
-  }
-
   try {
-    return normalizeFailureSimulationSettings(JSON.parse(storedValue));
+    const storedValue = storage.getItem(FAILURE_SIMULATION_STORAGE_KEY);
+
+    return normalizeFailureSimulationSettings(JSON.parse(storedValue ?? 'null'));
   } catch {
     return defaultFailureSimulationSettings;
   }
@@ -94,17 +86,24 @@ export const saveFailureSimulationSettings = (
   storage: FailureSimulationStorageLike,
   settings: FailureSimulationSettings,
 ): void => {
-  storage.setItem(
-    FAILURE_SIMULATION_STORAGE_KEY,
-    JSON.stringify(normalizeFailureSimulationSettings(settings)),
-  );
+  try {
+    storage.setItem(
+      FAILURE_SIMULATION_STORAGE_KEY,
+      JSON.stringify(normalizeFailureSimulationSettings(settings)),
+    );
+  } catch {
+    // Local reliability simulation settings are best-effort in browser storage.
+  }
 };
+
+const ipv4LoopbackHostnamePattern =
+  /^127(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
 
 export const isLocalFailureSimulationHost = (hostname: string): boolean =>
   hostname === 'localhost' ||
   hostname === '::1' ||
   hostname === '[::1]' ||
-  hostname.startsWith('127.');
+  ipv4LoopbackHostnamePattern.test(hostname);
 
 export const shouldSimulateLatency = (
   settings: FailureSimulationSettings,

@@ -57,6 +57,11 @@ interface ApiRequestOptions<TBody> {
   readonly token?: string;
 }
 
+interface AuthenticatedRequestOptions {
+  readonly onAuthFailure: () => void;
+  readonly token: string;
+}
+
 interface ApiErrorPayload {
   readonly code?: string | undefined;
   readonly details?: ValidationDetails | undefined;
@@ -65,7 +70,7 @@ interface ApiErrorPayload {
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null;
+  typeof value === 'object' && value !== null && !Array.isArray(value);
 
 const isValidationDetails = (value: unknown): value is ValidationDetails =>
   isRecord(value) &&
@@ -74,6 +79,9 @@ const isValidationDetails = (value: unknown): value is ValidationDetails =>
       Array.isArray(messages) &&
       messages.every((message) => typeof message === 'string'),
   );
+
+const isStringArray = (value: unknown): value is readonly string[] =>
+  Array.isArray(value) && value.every((message) => typeof message === 'string');
 
 const parseErrorPayload = async (
   response: Response,
@@ -93,12 +101,10 @@ const parseErrorPayload = async (
 
     return {
       code: typeof parsed.code === 'string' ? parsed.code : undefined,
-      details: isValidationDetails(parsed.details)
-        ? parsed.details
-        : undefined,
+      details: isValidationDetails(parsed.details) ? parsed.details : undefined,
       error: typeof parsed.error === 'string' ? parsed.error : undefined,
       message:
-        typeof parsed.message === 'string' || Array.isArray(parsed.message)
+        typeof parsed.message === 'string' || isStringArray(parsed.message)
           ? parsed.message
           : undefined,
     };
@@ -199,9 +205,10 @@ export const apiRequest = async <TResponse, TBody = unknown>(
   });
 };
 
-export const login = (
-  body: { readonly email: string; readonly password: string },
-): Promise<LoginResponse> =>
+export const login = (body: {
+  readonly email: string;
+  readonly password: string;
+}): Promise<LoginResponse> =>
   apiRequest<LoginResponse, typeof body>('/auth/login', {
     body,
     method: 'POST',
@@ -209,22 +216,19 @@ export const login = (
 
 export const listPatients = (
   query: PatientListQuery,
-  options: {
-    readonly onAuthFailure: () => void;
-    readonly token: string;
-  },
+  options: AuthenticatedRequestOptions,
 ): Promise<PatientListResponse> =>
-  apiRequest<PatientListResponse>(buildPatientsUrl(DEFAULT_API_BASE_URL, query), {
-    onAuthFailure: options.onAuthFailure,
-    token: options.token,
-  });
+  apiRequest<PatientListResponse>(
+    buildPatientsUrl(DEFAULT_API_BASE_URL, query),
+    {
+      onAuthFailure: options.onAuthFailure,
+      token: options.token,
+    },
+  );
 
 export const getPatient = (
   id: string,
-  options: {
-    readonly onAuthFailure: () => void;
-    readonly token: string;
-  },
+  options: AuthenticatedRequestOptions,
 ): Promise<Patient> =>
   apiRequest<Patient>(`/patients/${encodeURIComponent(id)}`, {
     onAuthFailure: options.onAuthFailure,
@@ -233,10 +237,7 @@ export const getPatient = (
 
 export const createPatient = (
   body: PatientWriteInput,
-  options: {
-    readonly onAuthFailure: () => void;
-    readonly token: string;
-  },
+  options: AuthenticatedRequestOptions,
 ): Promise<Patient> =>
   apiRequest<Patient, PatientWriteInput>('/patients', {
     body,
@@ -248,24 +249,21 @@ export const createPatient = (
 export const updatePatient = (
   id: string,
   body: PatientWriteInput,
-  options: {
-    readonly onAuthFailure: () => void;
-    readonly token: string;
-  },
+  options: AuthenticatedRequestOptions,
 ): Promise<Patient> =>
-  apiRequest<Patient, PatientWriteInput>(`/patients/${encodeURIComponent(id)}`, {
-    body,
-    method: 'PUT',
-    onAuthFailure: options.onAuthFailure,
-    token: options.token,
-  });
+  apiRequest<Patient, PatientWriteInput>(
+    `/patients/${encodeURIComponent(id)}`,
+    {
+      body,
+      method: 'PUT',
+      onAuthFailure: options.onAuthFailure,
+      token: options.token,
+    },
+  );
 
 export const deletePatient = (
   id: string,
-  options: {
-    readonly onAuthFailure: () => void;
-    readonly token: string;
-  },
+  options: AuthenticatedRequestOptions,
 ): Promise<{ readonly ok: true }> =>
   apiRequest<{ readonly ok: true }>(`/patients/${encodeURIComponent(id)}`, {
     method: 'DELETE',

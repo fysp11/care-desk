@@ -2,8 +2,9 @@ import { z } from 'zod';
 
 import type { Patient, PatientWriteInput } from './types';
 
-const phoneNumberPattern = /^\+?[0-9 ()-]{7,24}$/;
+const phoneNumberPattern = /^\+?[0-9 ()-]{7,32}$/;
 const dobPattern = /^\d{4}-\d{2}-\d{2}$/;
+const dateOnlyLength = 'YYYY-MM-DD'.length;
 
 const trimString = (value: unknown): unknown =>
   typeof value === 'string' ? value.trim() : value;
@@ -23,11 +24,27 @@ const nonBlankText = (label: string, maxLength: number) =>
 const isValidDateOnly = (value: string): boolean => {
   const date = new Date(`${value}T00:00:00.000Z`);
 
-  return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value);
+  return (
+    !Number.isNaN(date.getTime()) &&
+    date.toISOString().slice(0, dateOnlyLength) === value
+  );
+};
+
+const localDateOnly = (date: Date): string => {
+  const year = String(date.getFullYear()).padStart(4, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
 };
 
 const isNotFutureDate = (value: string): boolean =>
-  value <= new Date().toISOString().slice(0, 10);
+  value <= localDateOnly(new Date());
+
+interface PatientFormIssue {
+  readonly message: string;
+  readonly path: readonly PropertyKey[];
+}
 
 export const patientFormSchema = z.object({
   dob: z.preprocess(
@@ -48,15 +65,42 @@ export const patientFormSchema = z.object({
     trimString,
     z
       .string()
+      .max(32, 'Phone number is too long.')
       .regex(
         phoneNumberPattern,
         'Use digits, spaces, parentheses, hyphens, and an optional leading plus.',
-      )
-      .max(32, 'Phone number is too long.'),
+      ),
   ),
 });
 
 export type PatientFormValues = z.infer<typeof patientFormSchema>;
+export type PatientFormErrorMessages = Partial<
+  Record<keyof PatientFormValues, string>
+>;
+
+export const firstPatientFormErrorMessages = (
+  issues: readonly PatientFormIssue[],
+): PatientFormErrorMessages => {
+  const messages: PatientFormErrorMessages = {};
+
+  for (const issue of issues) {
+    const [field] = issue.path;
+
+    if (field === undefined) {
+      continue;
+    }
+
+    if (!Object.hasOwn(patientFormSchema.shape, field)) {
+      continue;
+    }
+
+    const formField = field as keyof PatientFormValues;
+
+    messages[formField] ??= issue.message;
+  }
+
+  return messages;
+};
 
 export const emptyPatientFormValues: PatientFormValues = {
   dob: '',

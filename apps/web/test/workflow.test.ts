@@ -4,10 +4,14 @@ import type { StoredSession } from '../lib/session';
 import type { Patient, PatientListQuery } from '../lib/types';
 import {
   canMutatePatients,
+  addPatientToCurrentPage,
+  createOptimisticPatient,
   getOptimisticDeleteTotal,
   getTotalPages,
   getWorkflowView,
   nextSortQuery,
+  replacePatientById,
+  replacePatientByIdOrAddToCurrentPage,
   removePatientById,
   shouldShowDetailRetry,
   shouldShowListRetry,
@@ -80,7 +84,24 @@ describe('frontend workflow decisions', () => {
       sortDir: 'desc',
     });
 
+    expect(
+      nextSortQuery({ ...defaultQuery, sortDir: 'desc' }, 'lastName'),
+    ).toEqual({
+      ...defaultQuery,
+      page: 1,
+      sortDir: 'asc',
+    });
+
     expect(nextSortQuery(defaultQuery, 'dob')).toEqual({
+      ...defaultQuery,
+      page: 1,
+      sortBy: 'dob',
+      sortDir: 'asc',
+    });
+
+    expect(
+      nextSortQuery({ ...defaultQuery, sortDir: 'desc' }, 'dob'),
+    ).toEqual({
       ...defaultQuery,
       page: 1,
       sortBy: 'dob',
@@ -112,5 +133,96 @@ describe('frontend workflow decisions', () => {
     expect(removePatientById(patients, 'missing')).toEqual(patients);
     expect(getOptimisticDeleteTotal(12, 1)).toBe(11);
     expect(getOptimisticDeleteTotal(0, 1)).toBe(0);
+  });
+
+  test('creates optimistic patients with traceable temporary metadata', () => {
+    expect(
+      createOptimisticPatient(
+        {
+          dob: '1993-05-20',
+          email: 'iris.chen@example.com',
+          firstName: 'Iris',
+          lastName: 'Chen',
+          phoneNumber: '+1 (555) 0188',
+        },
+        'optimistic-patient-1',
+        '2026-06-21T12:00:00.000Z',
+      ),
+    ).toEqual({
+      createdAt: '2026-06-21T12:00:00.000Z',
+      dob: '1993-05-20',
+      email: 'iris.chen@example.com',
+      firstName: 'Iris',
+      id: 'optimistic-patient-1',
+      lastName: 'Chen',
+      phoneNumber: '+1 (555) 0188',
+      updatedAt: '2026-06-21T12:00:00.000Z',
+    });
+  });
+
+  test('adds optimistic creates to the current page without growing past the page size', () => {
+    const optimisticPatient = {
+      ...patients[0],
+      id: 'optimistic-patient-1',
+    };
+
+    expect(addPatientToCurrentPage(patients, optimisticPatient, 2)).toEqual([
+      optimisticPatient,
+      patients[0],
+    ]);
+    expect(addPatientToCurrentPage([], optimisticPatient, 0)).toEqual([
+      optimisticPatient,
+    ]);
+  });
+
+  test('replaces visible patients for optimistic edits', () => {
+    const replacement = {
+      ...patients[1],
+      firstName: 'Milo',
+      updatedAt: '2026-06-21T12:00:00.000Z',
+    };
+
+    expect(replacePatientById(patients, replacement)).toEqual([
+      patients[0],
+      replacement,
+    ]);
+    expect(
+      replacePatientById(patients, {
+        ...replacement,
+        id: 'missing',
+      }),
+    ).toEqual(patients);
+  });
+
+  test('replaces optimistic saves or keeps the saved patient visible as a fallback', () => {
+    const savedPatient = {
+      ...patients[0],
+      id: 'server-patient-1',
+      firstName: 'Saved',
+    };
+
+    expect(
+      replacePatientByIdOrAddToCurrentPage(
+        [
+          {
+            ...patients[0],
+            id: 'optimistic-patient-1',
+          },
+          patients[1],
+        ],
+        'optimistic-patient-1',
+        savedPatient,
+        2,
+      ),
+    ).toEqual([savedPatient, patients[1]]);
+
+    expect(
+      replacePatientByIdOrAddToCurrentPage(
+        [patients[1]],
+        'optimistic-patient-1',
+        savedPatient,
+        2,
+      ),
+    ).toEqual([savedPatient, patients[1]]);
   });
 });

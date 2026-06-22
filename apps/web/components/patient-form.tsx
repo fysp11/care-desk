@@ -11,6 +11,7 @@ import {
 
 import {
   emptyPatientFormValues,
+  firstPatientFormErrorMessages,
   patientFormSchema,
   patientToFormValues,
   toPatientPayload,
@@ -27,14 +28,6 @@ interface PatientFormProps {
   readonly serverError?: string | undefined;
 }
 
-const fieldLabels: Record<FieldPath<PatientFormValues>, string> = {
-  dob: 'Date of birth',
-  email: 'Email',
-  firstName: 'First name',
-  lastName: 'Last name',
-  phoneNumber: 'Phone number',
-};
-
 const patientResolver: Resolver<PatientFormValues> = async (values) => {
   const result = patientFormSchema.safeParse(values);
 
@@ -47,15 +40,11 @@ const patientResolver: Resolver<PatientFormValues> = async (values) => {
 
   const errors: FieldErrors<PatientFormValues> = {};
 
-  for (const issue of result.error.issues) {
-    const [field] = issue.path;
+  const messages = firstPatientFormErrorMessages(result.error.issues);
 
-    if (typeof field !== 'string' || !(field in fieldLabels)) {
-      continue;
-    }
-
+  for (const [field, message] of Object.entries(messages)) {
     errors[field as FieldPath<PatientFormValues>] = {
-      message: issue.message,
+      message,
       type: 'validation',
     };
   }
@@ -150,9 +139,10 @@ export function PatientForm({
         />
         <FormField
           error={errors.dob?.message}
+          inputMode="numeric"
           label="Date of birth"
+          placeholder="YYYY-MM-DD"
           registration={register('dob')}
-          type="date"
         />
       </div>
 
@@ -180,7 +170,9 @@ export function PatientForm({
 interface FormFieldProps {
   readonly autoComplete?: string | undefined;
   readonly error?: string | undefined;
+  readonly inputMode?: 'numeric' | undefined;
   readonly label: string;
+  readonly placeholder?: string | undefined;
   readonly registration: UseFormRegisterReturn<FieldPath<PatientFormValues>>;
   readonly type?: string | undefined;
 }
@@ -188,7 +180,9 @@ interface FormFieldProps {
 function FormField({
   autoComplete,
   error,
+  inputMode,
   label,
+  placeholder,
   registration,
   type = 'text',
 }: FormFieldProps) {
@@ -204,6 +198,8 @@ function FormField({
         autoComplete={autoComplete}
         className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm transition placeholder:text-slate-400 hover:border-slate-400 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 disabled:cursor-not-allowed disabled:bg-slate-100"
         id={id}
+        inputMode={inputMode}
+        placeholder={placeholder}
         type={type}
       />
       {error ? (

@@ -23,6 +23,9 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const isRole = (value: unknown): value is UserRole =>
   value === 'admin' || value === 'user';
 
+const isSafeInteger = (value: unknown): value is number =>
+  Number.isSafeInteger(value);
+
 const parseStoredSession = (value: unknown): StoredSession | null => {
   if (!isRecord(value) || typeof value.token !== 'string') {
     return null;
@@ -30,11 +33,7 @@ const parseStoredSession = (value: unknown): StoredSession | null => {
 
   const user = value.user;
 
-  if (
-    !isRecord(user) ||
-    typeof user.email !== 'string' ||
-    !isRole(user.role)
-  ) {
+  if (!isRecord(user) || typeof user.email !== 'string' || !isRole(user.role)) {
     return null;
   }
 
@@ -48,69 +47,102 @@ const parseStoredSession = (value: unknown): StoredSession | null => {
 };
 
 const decodeBase64Url = (value: string): string => {
-  const base64 = value.replaceAll('-', '+').replaceAll('_', '/');
-  const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+  const normalized = value.replaceAll('-', '+').replaceAll('_', '/');
+  const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
 
   return globalThis.atob(padded);
 };
 
 export const getJwtExpirySeconds = (token: string): number | null => {
-  const [, payload] = token.split('.');
+  const parts = token.split('.');
 
-  if (!payload) {
+  if (parts.length !== 3 || parts.some((part) => !part)) {
     return null;
   }
 
+  let parsed: unknown;
+
   try {
-    const parsed = JSON.parse(decodeBase64Url(payload)) as unknown;
-
-    if (!isRecord(parsed) || typeof parsed.exp !== 'number') {
-      return null;
-    }
-
-    return parsed.exp;
+    parsed = JSON.parse(decodeBase64Url(parts[1] ?? '')) as unknown;
   } catch {
     return null;
   }
+
+  if (!isRecord(parsed) || !isSafeInteger(parsed.exp)) {
+    return null;
+  }
+
+  return parsed.exp;
 };
 
 export const clearStoredSession = (storage: SessionStorageLike): void => {
-  storage.removeItem(SESSION_STORAGE_KEY);
+  try {
+    storage.removeItem(SESSION_STORAGE_KEY);
+  } catch {
+    // Storage can be unavailable in restricted browser contexts.
+  }
 };
 
 export const saveStoredSession = (
   storage: SessionStorageLike,
   session: StoredSession,
 ): void => {
-  storage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+  try {
+    storage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+  } catch {
+    // Persisting the session is best-effort; in-memory auth state still works.
+  }
 };
 
 export const readStoredSession = (
   storage: SessionStorageLike,
   options: ReadSessionOptions = {},
 ): StoredSession | null => {
-  const storedValue = storage.getItem(SESSION_STORAGE_KEY);
+  let storedValue: string | null;
 
-  if (!storedValue) {
+  try {
+    storedValue = storage.getItem(SESSION_STORAGE_KEY);
+  } catch {
     return null;
   }
 
+  if (storedValue === null) {
+    return null;
+  }
+
+  let parsedValue: unknown;
+
   try {
-    const session = parseStoredSession(JSON.parse(storedValue));
-    const nowSeconds =
-      options.nowSeconds ?? Math.floor(globalThis.Date.now() / 1000);
-    const exp = session ? getJwtExpirySeconds(session.token) : null;
-
-    if (!session || !exp || exp <= nowSeconds) {
-      clearStoredSession(storage);
-
-      return null;
-    }
-
-    return session;
+    parsedValue = JSON.parse(storedValue) as unknown;
   } catch {
     clearStoredSession(storage);
 
     return null;
   }
+
+  const session = parseStoredSession(parsedValue);
+
+  if (!session) {
+    clearStoredSession(storage);
+
+    return null;
+  }
+
+  const nowSeconds =
+    options.nowSeconds ?? Math.floor(globalThis.Date.now() / 1000);
+  const exp = getJwtExpirySeconds(session.token);
+
+  if (exp === null) {
+    clearStoredSession(storage);
+
+    return null;
+  }
+
+  if (exp <= nowSeconds) {
+    clearStoredSession(storage);
+
+    return null;
+  }
+
+  return session;
 };

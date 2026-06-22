@@ -92,8 +92,8 @@ before submission.
 | API typecheck | Passed after the Wave 4 CORS/reliability work. |
 | Web tests | Passed, 19 web tests. |
 | Web typecheck | Passed. |
-| Web build | Passed in Wave 3 with sandbox escalation. |
-| Wave 4 build | Blocked in sandbox by Turbopack process/port permission; rerun outside sandbox before submission. |
+| Web build | Turbopack path fails in this sandbox (`Operation not permitted`); webpack path succeeds with `bunx next build --webpack` from `apps/web`. |
+| Wave 4 build | Shared and API builds pass; web `next build` passes with `--webpack`. Turbopack still fails in this sandbox and should be rerun in a non-restricted environment before final submission if needed. |
 
 ## Known Cuts
 

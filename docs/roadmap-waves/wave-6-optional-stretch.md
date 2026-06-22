@@ -17,10 +17,9 @@ mutation, database migration, or new broad test surfaces.
 Status: Complete as a docs-only optional-stretch decision.
 
 Wave 6 did not implement optional infrastructure or broaden the app. The
-decision is to defer Docker/cloud/PostgreSQL/Prisma/audit/rate limiting/browser
-E2E work to explicit backlog items because the core slice is already the
-review target, and the Wave 4 build still needs a non-sandbox rerun before
-submission.
+decision is to defer Docker/cloud/audit/rate limiting/browser E2E work while
+moving PostgreSQL/Prisma to Wave 7 (documented as the dedicated persistence
+hardening wave).
 
 No production deployment, cloud mutation, Docker mutation, database migration,
 production configuration, secrets, or real patient data were introduced.
@@ -41,7 +40,7 @@ production configuration, secrets, or real patient data were introduced.
 |---|---|---:|---|
 | Docker Compose | Deferred | Medium | Defer unless local setup becomes a reviewer blocker; current deterministic in-memory storage makes Compose less useful until PostgreSQL is implemented. |
 | Cloud hosting | Deferred | High | Defer; hosting is optional, requires deployment/secrets/config decisions, and should not precede refreshed local build proof. |
-| PostgreSQL/Prisma | Deferred | Medium/High | Defer to a dedicated persistence hardening wave; Prisma 7 requires config, generated-client output, driver adapter, migration, seed, error-mapping, and parity-test work. |
+| PostgreSQL/Prisma | Deferred to Wave 7 | Medium/High | Deferred to a dedicated persistence hardening wave. Wave 7 implements Prisma 7 config, generated-client output, migration, seed, error-mapping, and parity tests. |
 | Audit log / soft delete | Deferred | Medium | Defer; this changes patient lifecycle semantics, data model, and UI behavior beyond the verified CRUD slice. |
 | Rate limiting | Deferred | Medium | Defer; limits are deployment-profile dependent and not required to prove local auth/RBAC/API correctness. |
 | Browser E2E matrix | Deferred | Medium | Defer until the Wave 4 build is rerun outside the sandbox and Playwright/device coverage can be added deliberately. |
@@ -73,7 +72,7 @@ production configuration, secrets, or real patient data were introduced.
 | Next step | Trigger | Scope guard |
 |---|---|---|
 | Rerun Wave 4 build outside the sandbox. | Before submission or before adding browser E2E. | Capture build result without changing production config. |
-| Add PostgreSQL/Prisma persistence hardening. | After build/test proof is refreshed. | Dedicated wave with Prisma 7 config, migrations, seeds, repository parity tests, and documented rollback plan. |
+| Add PostgreSQL/Prisma persistence hardening. | Transitioned to Wave 7. | Dedicated persistence hardening with Prisma 7 config, migrations, seeds, repository parity tests, and documented rollback plan. |
 | Add minimal Docker Compose. | When PostgreSQL is adopted or reviewer setup needs reproducible dependencies. | Local-only Compose with placeholders, no committed secrets, no obsolete top-level `version`. |
 | Add browser E2E coverage. | After local build proof is current. | Cover admin/user happy paths and responsive breakpoints; avoid broad device matrix creep. |
 | Add audit log or soft delete. | When lifecycle/compliance semantics become in scope. | Define event model, retention behavior, UI semantics, and tests before implementation. |

@@ -35,7 +35,7 @@ packages/shared
   shared patient and API contract types when useful
 
 current shipped persistence
-  deterministic in-memory demo patient repository with fictional fixtures
+  PostgreSQL-backed Prisma 7 patient repository with fictional fixtures
 
 next persistence hardening
   PostgreSQL + Prisma 7 schema, migrations, indexes, and seed flow
@@ -44,11 +44,9 @@ next persistence hardening
 The backend is the source of truth. The frontend may hide admin-only actions,
 but every mutation must still pass server-side authorization.
 
-Wave 2 shipped the patient API behind a repository boundary with deterministic
-in-memory demo storage. PostgreSQL remains the target relational persistence
-layer from the assignment, and Prisma 7 remains the preferred optional ORM path,
-but migration/schema/seed work is an explicit next hardening step rather than
-part of the verified slice.
+Wave 2 shipped the patient API contract behind a repository boundary. Wave 7
+adds PostgreSQL-backed Prisma 7 persistence with explicit schema, migration, and
+seed behavior while preserving the same API contract semantics.
 
 ## Data Model
 
@@ -108,7 +106,7 @@ Error shape:
 ```json
 {
   "code": "VALIDATION_ERROR",
-  "message": "Patient input is invalid.",
+  "message": "Request validation failed.",
   "details": {}
 }
 ```
@@ -193,7 +191,7 @@ the verified slice:
 | Full audit log | Changes schema, UI, retention, and compliance assumptions | Add append-only patient events before real clinical use |
 | Multi-tenancy | Tenant scope affects every query and guard | Add organization model and tenant-aware data access |
 | Refresh tokens/password reset | Auth lifecycle product work is outside the core slice | Add when identity management is in scope |
-| PostgreSQL/Prisma implementation | The repository boundary proved the API contract while avoiding Prisma 7 migration risk inside the timebox | Replace deterministic demo storage with PostgreSQL/Prisma 7, migrations, indexes, seeds, and parity tests |
+| PostgreSQL/Prisma implementation | Wave 7 introduces Prisma 7 persistence hardening under PostgreSQL with migration/schema and seeded reset flow | Migration/schema parity is implemented; environment/network constraints currently block full end-to-end verification in this sandbox |
 | Rate limiting/caching | Depends on deployment and traffic profile | Add after observing real usage patterns |
 | Broad mutation testing | Useful but too expensive for 3-4 hours | Run focused mutation checks on RBAC and validation later |
 

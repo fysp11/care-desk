@@ -8,8 +8,10 @@ import {
 } from '../auth/jwt.constants.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/roles.guard.js';
+import { PrismaService } from '../prisma.service.js';
 import { PatientsController } from './patients.controller.js';
-import { InMemoryPatientsRepository } from './patients.repository.js';
+import { PATIENTS_REPOSITORY } from './patients.repository.contract.js';
+import { PrismaPatientsRepository } from './patients.repository.js';
 import { PatientsService } from './patients.service.js';
 
 export class PatientsModule {}
@@ -29,7 +31,12 @@ Module({
     }),
   ],
   providers: [
-    InMemoryPatientsRepository,
+    PrismaService,
+    PrismaPatientsRepository,
+    {
+      provide: PATIENTS_REPOSITORY,
+      useExisting: PrismaPatientsRepository,
+    },
     JwtAuthGuard,
     PatientsService,
     RolesGuard,

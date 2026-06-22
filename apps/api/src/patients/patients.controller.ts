@@ -22,26 +22,34 @@ import type { Patient, PatientListResponse } from './types.js';
 export class PatientsController {
   constructor(private readonly patientsService: PatientsService) {}
 
-  list(query: ListPatientsDto): PatientListResponse {
+  async list(query: ListPatientsDto): Promise<PatientListResponse> {
     return this.patientsService.list(query);
   }
 
-  getById(id: string): Patient {
+  async getById(id: string): Promise<Patient> {
     return this.patientsService.getById(id);
   }
 
-  create(body: CreatePatientDto): Patient {
+  async create(body: CreatePatientDto): Promise<Patient> {
     return this.patientsService.create(body);
   }
 
-  update(id: string, body: UpdatePatientDto): Patient {
+  async update(id: string, body: UpdatePatientDto): Promise<Patient> {
     return this.patientsService.update(id, body);
   }
 
-  delete(id: string): { readonly ok: true } {
+  async delete(id: string): Promise<{ readonly ok: true }> {
     return this.patientsService.delete(id);
   }
 }
+
+const methods = {
+  create: 'create',
+  delete: 'delete',
+  getById: 'getById',
+  list: 'list',
+  update: 'update',
+} as const satisfies Record<keyof PatientsController, keyof PatientsController>;
 
 const getMethodDescriptor = (
   target: object,
@@ -62,103 +70,98 @@ Reflect.defineMetadata(
   PatientsController,
 );
 
-const listDescriptor = getMethodDescriptor(PatientsController.prototype, 'list');
+const listDescriptor = getMethodDescriptor(
+  PatientsController.prototype,
+  methods.list,
+);
 Reflect.defineMetadata(
   'design:paramtypes',
   [ListPatientsDto],
   PatientsController.prototype,
-  'list',
+  methods.list,
 );
-Query()(PatientsController.prototype, 'list', 0);
-UseGuards(JwtAuthGuard)(PatientsController.prototype, 'list', listDescriptor);
-Get()(PatientsController.prototype, 'list', listDescriptor);
+Query()(PatientsController.prototype, methods.list, 0);
+UseGuards(JwtAuthGuard)(
+  PatientsController.prototype,
+  methods.list,
+  listDescriptor,
+);
+Get()(PatientsController.prototype, methods.list, listDescriptor);
 
 const getByIdDescriptor = getMethodDescriptor(
   PatientsController.prototype,
-  'getById',
+  methods.getById,
 );
 Reflect.defineMetadata(
   'design:paramtypes',
   [String],
   PatientsController.prototype,
-  'getById',
+  methods.getById,
 );
-Param('id')(PatientsController.prototype, 'getById', 0);
+Param('id')(PatientsController.prototype, methods.getById, 0);
 UseGuards(JwtAuthGuard)(
   PatientsController.prototype,
-  'getById',
+  methods.getById,
   getByIdDescriptor,
 );
-Get(':id')(PatientsController.prototype, 'getById', getByIdDescriptor);
+Get(':id')(PatientsController.prototype, methods.getById, getByIdDescriptor);
 
 const createDescriptor = getMethodDescriptor(
   PatientsController.prototype,
-  'create',
+  methods.create,
 );
 Reflect.defineMetadata(
   'design:paramtypes',
   [CreatePatientDto],
   PatientsController.prototype,
-  'create',
+  methods.create,
 );
-Body()(PatientsController.prototype, 'create', 0);
-Roles('admin')(
-  PatientsController.prototype,
-  'create',
-  createDescriptor,
-);
+Body()(PatientsController.prototype, methods.create, 0);
+Roles('admin')(PatientsController.prototype, methods.create, createDescriptor);
 UseGuards(JwtAuthGuard, RolesGuard)(
   PatientsController.prototype,
-  'create',
+  methods.create,
   createDescriptor,
 );
-Post()(PatientsController.prototype, 'create', createDescriptor);
+Post()(PatientsController.prototype, methods.create, createDescriptor);
 
 const updateDescriptor = getMethodDescriptor(
   PatientsController.prototype,
-  'update',
+  methods.update,
 );
 Reflect.defineMetadata(
   'design:paramtypes',
   [String, UpdatePatientDto],
   PatientsController.prototype,
-  'update',
+  methods.update,
 );
-Param('id')(PatientsController.prototype, 'update', 0);
-Body()(PatientsController.prototype, 'update', 1);
-Roles('admin')(
-  PatientsController.prototype,
-  'update',
-  updateDescriptor,
-);
+Param('id')(PatientsController.prototype, methods.update, 0);
+Body()(PatientsController.prototype, methods.update, 1);
+Roles('admin')(PatientsController.prototype, methods.update, updateDescriptor);
 UseGuards(JwtAuthGuard, RolesGuard)(
   PatientsController.prototype,
-  'update',
+  methods.update,
   updateDescriptor,
 );
-Put(':id')(PatientsController.prototype, 'update', updateDescriptor);
+Put(':id')(PatientsController.prototype, methods.update, updateDescriptor);
 
 const deleteDescriptor = getMethodDescriptor(
   PatientsController.prototype,
-  'delete',
+  methods.delete,
 );
 Reflect.defineMetadata(
   'design:paramtypes',
   [String],
   PatientsController.prototype,
-  'delete',
+  methods.delete,
 );
-Param('id')(PatientsController.prototype, 'delete', 0);
-Roles('admin')(
-  PatientsController.prototype,
-  'delete',
-  deleteDescriptor,
-);
+Param('id')(PatientsController.prototype, methods.delete, 0);
+Roles('admin')(PatientsController.prototype, methods.delete, deleteDescriptor);
 UseGuards(JwtAuthGuard, RolesGuard)(
   PatientsController.prototype,
-  'delete',
+  methods.delete,
   deleteDescriptor,
 );
-Delete(':id')(PatientsController.prototype, 'delete', deleteDescriptor);
+Delete(':id')(PatientsController.prototype, methods.delete, deleteDescriptor);
 
 Controller('patients')(PatientsController);

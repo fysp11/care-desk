@@ -1,13 +1,17 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 
+import {
+  PATIENTS_REPOSITORY,
+  type PatientsRepository,
+} from './patients.repository.contract.js';
 import { CreatePatientDto } from './dto/create-patient.dto.js';
 import { ListPatientsDto } from './dto/list-patients.dto.js';
 import { UpdatePatientDto } from './dto/update-patient.dto.js';
-import { InMemoryPatientsRepository } from './patients.repository.js';
 import type {
   Patient,
   PatientListOptions,
@@ -24,14 +28,17 @@ const DEFAULT_SORT_BY = 'lastName' satisfies PatientSortBy;
 const DEFAULT_SORT_DIR = 'asc' satisfies PatientSortDir;
 
 export class PatientsService {
-  constructor(private readonly patientsRepository: InMemoryPatientsRepository) {}
+  constructor(
+    @Inject(PATIENTS_REPOSITORY)
+    private readonly patientsRepository: PatientsRepository,
+  ) {}
 
-  list(query: ListPatientsDto): PatientListResponse {
+  async list(query: ListPatientsDto): Promise<PatientListResponse> {
     return this.patientsRepository.list(this.toListOptions(query));
   }
 
-  getById(id: string): Patient {
-    const patient = this.patientsRepository.findById(id);
+  async getById(id: string): Promise<Patient> {
+    const patient = await this.patientsRepository.findById(id);
 
     if (!patient) {
       throw this.notFoundError();
@@ -40,28 +47,30 @@ export class PatientsService {
     return patient;
   }
 
-  create(dto: CreatePatientDto): Patient {
+  async create(dto: CreatePatientDto): Promise<Patient> {
     const input = this.toWriteInput(dto);
-    this.assertEmailAvailable(input.email);
+    await this.assertEmailAvailable(input.email);
 
     return this.patientsRepository.create(input);
   }
 
-  update(id: string, dto: UpdatePatientDto): Patient {
-    const existingPatient = this.patientsRepository.findById(id);
+  async update(id: string, dto: UpdatePatientDto): Promise<Patient> {
+    const existingPatient = await this.patientsRepository.findById(id);
 
     if (!existingPatient) {
       throw this.notFoundError();
     }
 
     const input = this.toWriteInput(dto);
-    this.assertEmailAvailable(input.email, id);
+    await this.assertEmailAvailable(input.email, id);
 
-    return this.patientsRepository.update(id, input) ?? existingPatient;
+    const updated = await this.patientsRepository.update(id, input);
+
+    return updated ?? existingPatient;
   }
 
-  delete(id: string): { readonly ok: true } {
-    const deleted = this.patientsRepository.delete(id);
+  async delete(id: string): Promise<{ readonly ok: true }> {
+    const deleted = await this.patientsRepository.delete(id);
 
     if (!deleted) {
       throw this.notFoundError();
@@ -71,9 +80,7 @@ export class PatientsService {
   }
 
   private toListOptions(query: ListPatientsDto): PatientListOptions {
-    const requestedLimit = query.limit
-      ? Number(query.limit)
-      : DEFAULT_LIMIT;
+    const requestedLimit = query.limit ? Number(query.limit) : DEFAULT_LIMIT;
     const search = query.search?.trim();
     const options: PatientListOptions = {
       limit: Math.min(requestedLimit, MAX_LIMIT),
@@ -97,8 +104,11 @@ export class PatientsService {
     };
   }
 
-  private assertEmailAvailable(email: string, currentPatientId?: string): void {
-    const existingPatient = this.patientsRepository.findByEmail(email);
+  private async assertEmailAvailable(
+    email: string,
+    currentPatientId?: string,
+  ): Promise<void> {
+    const existingPatient = await this.patientsRepository.findByEmail(email);
 
     if (existingPatient && existingPatient.id !== currentPatientId) {
       throw new ConflictException({
@@ -116,9 +126,4 @@ export class PatientsService {
   }
 }
 
-Reflect.defineMetadata(
-  'design:paramtypes',
-  [InMemoryPatientsRepository],
-  PatientsService,
-);
 Injectable()(PatientsService);

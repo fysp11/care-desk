@@ -13,7 +13,7 @@ import inject from 'light-my-request';
 import { AppModule } from '../src/app.module.js';
 import type { LoginResponse } from '../src/auth/types.js';
 import { createValidationPipe } from '../src/common/validation.js';
-import { InMemoryPatientsRepository } from '../src/patients/patients.repository.js';
+import { PrismaPatientsRepository } from '../src/patients/patients.repository.js';
 import type {
   Patient,
   PatientListResponse,
@@ -38,7 +38,7 @@ const injectRequest = inject as unknown as (
 
 let app: INestApplication | undefined;
 let dispatch: unknown;
-let patientsRepository: InMemoryPatientsRepository;
+let patientsRepository: PrismaPatientsRepository;
 
 const request = (options: {
   readonly body?: unknown;
@@ -89,6 +89,25 @@ const demoPatientInput = (
   phoneNumber: '+1 555-0199',
 });
 
+const expectValidationDetails = (
+  body: ApiErrorBody,
+  fields: readonly string[],
+): void => {
+  expect(body.code).toBe('VALIDATION_ERROR');
+  expect(body.message).toBe('Request validation failed.');
+  expect(body.details).toBeDefined();
+
+  for (const field of fields) {
+    const messages = body.details?.[field];
+
+    expect(Array.isArray(messages)).toBe(true);
+    expect(messages?.length).toBeGreaterThan(0);
+    expect(messages?.every((message) => typeof message === 'string')).toBe(
+      true,
+    );
+  }
+};
+
 describe('patients API', () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -100,11 +119,11 @@ describe('patients API', () => {
     await app.init();
 
     dispatch = app.getHttpAdapter().getInstance();
-    patientsRepository = app.get(InMemoryPatientsRepository);
+    patientsRepository = app.get(PrismaPatientsRepository);
   });
 
-  beforeEach(() => {
-    patientsRepository.reset();
+  beforeEach(async () => {
+    await patientsRepository.reset();
   });
 
   afterAll(async () => {
@@ -123,7 +142,6 @@ describe('patients API', () => {
     expect(createResponse.statusCode).toBe(201);
 
     const createdPatient = createResponse.json<Patient>();
-    expect(createdPatient.id).toBe('demo-patient-005');
     expect(createdPatient.email).toBe('nora.frost@example.com');
     expect(createdPatient.firstName).toBe('Nora');
 
@@ -189,6 +207,38 @@ describe('patients API', () => {
       'Evans',
     ]);
 
+    const descendingResponse = await request({
+      method: 'GET',
+      token: admin.token,
+      url: '/patients?sortBy=lastName&sortDir=desc&page=1&limit=2',
+    });
+
+    expect(descendingResponse.statusCode).toBe(200);
+    expect(
+      descendingResponse
+        .json<PatientListResponse>()
+        .data.map((patient) => patient.lastName),
+    ).toEqual(['Evans', 'Diaz']);
+
+    const createResponse = await request({
+      body: demoPatientInput('latest.patient@example.com'),
+      method: 'POST',
+      token: admin.token,
+      url: '/patients',
+    });
+    const createdPatient = createResponse.json<Patient>();
+    const newestResponse = await request({
+      method: 'GET',
+      token: admin.token,
+      url: '/patients?sortBy=createdAt&sortDir=desc&limit=1',
+    });
+
+    expect(createResponse.statusCode).toBe(201);
+    expect(newestResponse.statusCode).toBe(200);
+    expect(newestResponse.json<PatientListResponse>().data[0]?.id).toBe(
+      createdPatient.id,
+    );
+
     const user = await loginAs('user@example.com', 'user-password');
     const searchResponse = await request({
       method: 'GET',
@@ -216,8 +266,7 @@ describe('patients API', () => {
     expect(response.statusCode).toBe(400);
 
     const body = response.json<ApiErrorBody>();
-    expect(body.code).toBe('VALIDATION_ERROR');
-    expect(body.details?.page?.length).toBeGreaterThan(0);
+    expectValidationDetails(body, ['page']);
   });
 
   test('unsafe patient list limit value returns 400 validation error', async () => {
@@ -232,8 +281,7 @@ describe('patients API', () => {
     expect(response.statusCode).toBe(400);
 
     const body = response.json<ApiErrorBody>();
-    expect(body.code).toBe('VALIDATION_ERROR');
-    expect(body.details?.limit?.length).toBeGreaterThan(0);
+    expectValidationDetails(body, ['limit']);
   });
 
   test('user can view patients but receives 403 on mutations', async () => {
@@ -299,10 +347,25 @@ describe('patients API', () => {
     expect(response.statusCode).toBe(400);
 
     const body = response.json<ApiErrorBody>();
-    expect(body.code).toBe('VALIDATION_ERROR');
-    expect(body.details?.email?.length).toBeGreaterThan(0);
-    expect(body.details?.dob?.length).toBeGreaterThan(0);
-    expect(body.details?.phoneNumber?.length).toBeGreaterThan(0);
+    expectValidationDetails(body, ['email', 'dob', 'phoneNumber']);
+  });
+
+  test('unknown patient body fields return validation details', async () => {
+    const admin = await loginAs('admin@example.com', 'admin-password');
+    const response = await request({
+      body: {
+        ...demoPatientInput('unknown.field@example.com'),
+        medicalRecordNumber: 'MRN-001',
+      },
+      method: 'POST',
+      token: admin.token,
+      url: '/patients',
+    });
+
+    expect(response.statusCode).toBe(400);
+
+    const body = response.json<ApiErrorBody>();
+    expectValidationDetails(body, ['medicalRecordNumber']);
   });
 
   test('invalid patient list query returns 400', async () => {
@@ -316,11 +379,7 @@ describe('patients API', () => {
     expect(response.statusCode).toBe(400);
 
     const body = response.json<ApiErrorBody>();
-    expect(body.code).toBe('VALIDATION_ERROR');
-    expect(body.details?.page?.length).toBeGreaterThan(0);
-    expect(body.details?.limit?.length).toBeGreaterThan(0);
-    expect(body.details?.sortBy?.length).toBeGreaterThan(0);
-    expect(body.details?.sortDir?.length).toBeGreaterThan(0);
+    expectValidationDetails(body, ['page', 'limit', 'sortBy', 'sortDir']);
   });
 
   test('missing patient returns 404', async () => {

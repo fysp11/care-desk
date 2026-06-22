@@ -7,7 +7,7 @@ const collectValidationDetails = (
   errors: readonly ValidationError[],
   parentPath = '',
 ): ValidationDetails => {
-  const details: ValidationDetails = {};
+  const details = Object.create(null) as ValidationDetails;
 
   for (const error of errors) {
     const propertyPath = parentPath
@@ -19,7 +19,7 @@ const collectValidationDetails = (
       details[propertyPath] = messages;
     }
 
-    if (error.children && error.children.length > 0) {
+    if (error.children?.length) {
       Object.assign(
         details,
         collectValidationDetails(error.children, propertyPath),
@@ -41,9 +41,5 @@ export const createValidationPipe = (): ValidationPipe =>
     forbidNonWhitelisted: true,
     forbidUnknownValues: true,
     transform: false,
-    validationError: {
-      target: false,
-      value: false,
-    },
     whitelist: true,
   });

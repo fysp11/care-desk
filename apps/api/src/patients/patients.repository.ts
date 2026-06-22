@@ -1,5 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import type {
+  Prisma,
+  Patient as PrismaPatient,
+} from '../generated/prisma/client.js';
+import { ConflictException, Injectable } from '@nestjs/common';
 
+import { PrismaService } from '../prisma.service.js';
+import type { PatientsRepository } from './patients.repository.contract.js';
 import type {
   Patient,
   PatientListOptions,
@@ -9,7 +15,7 @@ import type {
 
 const nowIso = '2026-06-21T00:00:00.000Z';
 
-const seedPatients: readonly Patient[] = [
+const seededPatients: readonly Patient[] = [
   {
     createdAt: nowIso,
     dob: '1984-02-13',
@@ -52,124 +58,165 @@ const seedPatients: readonly Patient[] = [
   },
 ];
 
-const clonePatient = (patient: Patient): Patient => ({ ...patient });
+const mapPatient = (patient: PrismaPatient): Patient => ({
+  createdAt: patient.createdAt.toISOString(),
+  dob: patient.dob,
+  email: patient.email,
+  firstName: patient.firstName,
+  id: patient.id,
+  lastName: patient.lastName,
+  phoneNumber: patient.phoneNumber,
+  updatedAt: patient.updatedAt.toISOString(),
+});
 
-const normalizeComparable = (value: string): string => value.toLowerCase();
+const buildOrderBy = ({
+  sortBy,
+  sortDir,
+}: PatientListOptions): Prisma.PatientOrderByWithRelationInput[] =>
+  [
+    { [sortBy]: sortDir },
+    { id: 'asc' },
+  ] as Prisma.PatientOrderByWithRelationInput[];
 
-export class InMemoryPatientsRepository {
-  private patients = new Map<string, Patient>();
+@Injectable()
+export class PrismaPatientsRepository implements PatientsRepository {
+  constructor(private readonly prisma: PrismaService) {}
 
-  private nextSequence = 1;
-
-  constructor() {
-    this.reset();
+  async reset(): Promise<void> {
+    await this.prisma.patient.deleteMany();
+    await this.prisma.patient.createMany({
+      data: seededPatients.map((patient) => ({
+        ...patient,
+        createdAt: new Date(patient.createdAt),
+        updatedAt: new Date(patient.updatedAt),
+        dob: patient.dob,
+      })),
+    });
   }
 
-  reset(): void {
-    this.patients = new Map(
-      seedPatients.map((patient) => [patient.id, clonePatient(patient)]),
-    );
-    this.nextSequence = seedPatients.length + 1;
-  }
-
-  list(options: PatientListOptions): PatientListResponse {
-    const search = options.search?.toLowerCase();
-    const filteredPatients = [...this.patients.values()].filter((patient) => {
-      if (!search) {
-        return true;
-      }
-
-      return [
-        patient.firstName,
-        patient.lastName,
-        patient.email,
-        patient.phoneNumber,
-      ].some((field) => field.toLowerCase().includes(search));
-    });
-
-    const sortedPatients = filteredPatients.toSorted((left, right) => {
-      const direction = options.sortDir === 'asc' ? 1 : -1;
-      const leftValue = normalizeComparable(left[options.sortBy]);
-      const rightValue = normalizeComparable(right[options.sortBy]);
-      const primaryComparison = leftValue.localeCompare(rightValue);
-
-      if (primaryComparison !== 0) {
-        return primaryComparison * direction;
-      }
-
-      return left.id.localeCompare(right.id);
-    });
-
-    const start = (options.page - 1) * options.limit;
-    const data = sortedPatients
-      .slice(start, start + options.limit)
-      .map(clonePatient);
+  async list(options: PatientListOptions): Promise<PatientListResponse> {
+    const search = options.search?.trim();
+    const where: Prisma.PatientWhereInput | undefined = search
+      ? {
+          OR: [
+            { firstName: { contains: search, mode: 'insensitive' } },
+            { lastName: { contains: search, mode: 'insensitive' } },
+            { email: { contains: search, mode: 'insensitive' } },
+            { phoneNumber: { contains: search, mode: 'insensitive' } },
+          ],
+        }
+      : undefined;
+    const [patients, total] = await Promise.all([
+      where
+        ? this.prisma.patient.findMany({
+            orderBy: buildOrderBy(options),
+            skip: (options.page - 1) * options.limit,
+            take: options.limit,
+            where,
+          })
+        : this.prisma.patient.findMany({
+            orderBy: buildOrderBy(options),
+            skip: (options.page - 1) * options.limit,
+            take: options.limit,
+          }),
+      where
+        ? this.prisma.patient.count({ where })
+        : this.prisma.patient.count(),
+    ]);
 
     return {
-      data,
+      data: patients.map(mapPatient),
       limit: options.limit,
       page: options.page,
-      total: filteredPatients.length,
+      total,
     };
   }
 
-  findById(id: string): Patient | undefined {
-    const patient = this.patients.get(id);
+  async findById(id: string): Promise<Patient | undefined> {
+    const patient = await this.prisma.patient.findUnique({ where: { id } });
 
-    return patient ? clonePatient(patient) : undefined;
+    return patient ? mapPatient(patient) : undefined;
   }
 
-  findByEmail(email: string): Patient | undefined {
-    const normalizedEmail = email.toLowerCase();
-    const patient = [...this.patients.values()].find(
-      (candidate) => candidate.email.toLowerCase() === normalizedEmail,
-    );
+  async findByEmail(email: string): Promise<Patient | undefined> {
+    const patient = await this.prisma.patient.findUnique({
+      where: { email: email.toLowerCase() },
+    });
 
-    return patient ? clonePatient(patient) : undefined;
+    return patient ? mapPatient(patient) : undefined;
   }
 
-  create(input: PatientWriteInput): Patient {
-    const timestamp = new Date().toISOString();
-    const patient: Patient = {
-      ...input,
-      createdAt: timestamp,
-      id: this.nextId(),
-      updatedAt: timestamp,
-    };
+  async create(input: PatientWriteInput): Promise<Patient> {
+    try {
+      const patient = await this.prisma.patient.create({
+        data: input,
+      });
 
-    this.patients.set(patient.id, patient);
+      return mapPatient(patient);
+    } catch (error: unknown) {
+      if (this.isPrismaConflictError(error)) {
+        throw new ConflictException({
+          code: 'PATIENT_EMAIL_CONFLICT',
+          message: 'Patient email already exists.',
+        });
+      }
 
-    return clonePatient(patient);
-  }
-
-  update(id: string, input: PatientWriteInput): Patient | undefined {
-    const existingPatient = this.patients.get(id);
-
-    if (!existingPatient) {
-      return undefined;
+      throw error;
     }
-
-    const patient: Patient = {
-      ...existingPatient,
-      ...input,
-      updatedAt: new Date().toISOString(),
-    };
-
-    this.patients.set(id, patient);
-
-    return clonePatient(patient);
   }
 
-  delete(id: string): boolean {
-    return this.patients.delete(id);
+  async update(
+    id: string,
+    input: PatientWriteInput,
+  ): Promise<Patient | undefined> {
+    try {
+      const patient = await this.prisma.patient.update({
+        data: input,
+        where: { id },
+      });
+
+      return mapPatient(patient);
+    } catch (error: unknown) {
+      if (this.isPrismaConflictError(error)) {
+        throw new ConflictException({
+          code: 'PATIENT_EMAIL_CONFLICT',
+          message: 'Patient email already exists.',
+        });
+      }
+
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code: string }).code === 'P2025'
+      ) {
+        return undefined;
+      }
+
+      throw error;
+    }
   }
 
-  private nextId(): string {
-    const id = `demo-patient-${String(this.nextSequence).padStart(3, '0')}`;
-    this.nextSequence += 1;
+  private isPrismaConflictError(error: unknown): boolean {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      (error as { code: string }).code === 'P2002'
+    );
+  }
 
-    return id;
+  async delete(id: string): Promise<boolean> {
+    const deleted = await this.prisma.patient.deleteMany({
+      where: { id },
+    });
+
+    return deleted.count > 0;
   }
 }
 
-Injectable()(InMemoryPatientsRepository);
+Reflect.defineMetadata(
+  'design:paramtypes',
+  [PrismaService],
+  PrismaPatientsRepository,
+);

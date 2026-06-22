@@ -20,11 +20,15 @@ export class ListPatientsDto {
   sortDir?: string;
 }
 
-const positiveIntegerPattern = /^[1-9]\d*$/;
-const isSafePositiveIntegerString = (value: unknown): boolean =>
-  typeof value === 'string' &&
-  positiveIntegerPattern.test(value) &&
-  Number.isSafeInteger(Number(value));
+const isSafePositiveIntegerString = (value: unknown): boolean => {
+  const numberValue = Number(value);
+
+  return (
+    String(numberValue) === value &&
+    Number.isSafeInteger(numberValue) &&
+    numberValue > 0
+  );
+};
 const IsSafePositiveIntegerString = (fieldName: string): PropertyDecorator =>
   ValidateBy(
     {

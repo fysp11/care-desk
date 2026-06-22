@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 
 export const metadata: Metadata = {
   title: 'Care Desk',
-  description: 'Patient management case challenge scaffold',
+  description: 'Patient management workflow for the case challenge',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

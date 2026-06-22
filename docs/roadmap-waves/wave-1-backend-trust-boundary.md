@@ -44,7 +44,8 @@ workflows on top of it.
   role.
 - Protected auth probe route for tests.
 - Integration tests proving admin success, user `403`, missing token `401`,
-  expired token `401`, and invalid login validation.
+  malformed token `401`, forged token `401`, expired token `401`, and invalid
+  login validation.
 
 ### Deferred
 
@@ -134,7 +135,7 @@ These are public test fixtures only, not real credentials.
 | Done | Add JWT auth guard. | `.agents/agents/backend.md` | HS256 algorithm and 15-minute expiry are explicit. |
 | Done | Add role decorator/guard. | `.agents/agents/backend.md` | Authenticated `user` receives `403` on admin probe. |
 | Done | Add protected probe endpoint. | `.agents/agents/backend.md` | `/auth/probe/me` and `/auth/probe/admin` prove auth/RBAC before patient routes. |
-| Done | Add integration tests. | `.agents/agents/backend.md` | Covers `200`, `400`, `401`, `403`, and expiry. |
+| Done | Add integration tests. | `.agents/agents/backend.md` | Covers `200`, `400`, `401`, `403`, expiry, malformed tokens, and wrong-secret forged tokens. |
 | Done | Run verification. | Main thread + verifier subagent | Local `bun run typecheck`, `bun test`, and unsandboxed `bun run build` passed before verifier dispatch. |
 
 ## Subagent Loop
@@ -156,6 +157,8 @@ Before Wave 1 is complete:
 - [x] Invalid login body returns `400`.
 - [x] Wrong credentials return `401`.
 - [x] Missing token on protected route returns `401`.
+- [x] Malformed token on protected route returns `401`.
+- [x] Wrong-secret forged token on protected route returns `401`.
 - [x] Expired token on protected route returns `401`.
 - [x] Authenticated `user` on admin-only protected route returns `403`.
 - [x] Authenticated `admin` on admin-only protected route succeeds.

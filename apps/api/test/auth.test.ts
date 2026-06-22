@@ -169,6 +169,37 @@ describe('auth trust boundary', () => {
     expect(body.code).toBe('UNAUTHORIZED');
   });
 
+  test('malformed token on an authenticated route returns 401', async () => {
+    const response = await getProbe('/auth/probe/me', 'not-a-jwt');
+
+    expect(response.statusCode).toBe(401);
+
+    const body = response.json<ApiErrorBody>();
+    expect(body.code).toBe('UNAUTHORIZED');
+  });
+
+  test('JWT signed with a different secret on an authenticated route returns 401', async () => {
+    const forgedToken = await jwtService.signAsync(
+      {
+        email: 'user@example.com',
+        role: 'user',
+        sub: 'demo-user',
+      } satisfies JwtPayload,
+      {
+        algorithm: JWT_ALGORITHM,
+        expiresIn: '15m',
+        secret: 'not-the-demo-jwt-secret',
+      },
+    );
+
+    const response = await getProbe('/auth/probe/me', forgedToken);
+
+    expect(response.statusCode).toBe(401);
+
+    const body = response.json<ApiErrorBody>();
+    expect(body.code).toBe('UNAUTHORIZED');
+  });
+
   test('expired token on an authenticated route returns 401', async () => {
     const expiredToken = await jwtService.signAsync(
       {

@@ -36,7 +36,7 @@ PostgreSQL-backed Prisma 7 implementation that includes:
 
 | Source | Applied here |
 |---|---|
-| `docs/roadmap.md` | Phase 2: PostgreSQL/Prisma model, DTO validation, service/repository layer, REST endpoints, normalized errors. |
+| `docs/roadmap.md` | Phase 2: patient contract, DTO validation, service/repository layer, deterministic demo repository, REST endpoints, normalized errors. |
 | `docs/challenge-resolution.md` | Patient CRUD, search, sort, pagination, and status semantics are the next backend proof point. |
 | `.agents/workflows/patient-management-case.md` | Implement backend patient model, DTOs, repository/service layer, endpoints, and tests before frontend. |
 | `.agents/checklists/implementation-gates.md` | Patient API gate is the primary exit gate for this wave. |

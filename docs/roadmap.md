@@ -29,6 +29,8 @@ The core delivery is complete when the repository can demonstrate:
 - Backend-enforced `401` and `403` behavior for patient routes.
 - Patient list, details, create, edit, and delete endpoints.
 - Search, sort, and pagination for `GET /patients`.
+- A repository boundary with deterministic demo patient storage and documented
+  PostgreSQL/Prisma hardening cut.
 - Client and server validation for patient fields.
 - Role-aware UI where `user` can view and `admin` can mutate.
 - Loading, empty, error, and failure rollback states.
@@ -41,7 +43,7 @@ The core delivery is complete when the repository can demonstrate:
 |---|---|---|---|
 | 0. Baseline and stack lock | Low | Confirm workspace shape, scripts, package manager, Node/Bun assumptions, and latest-version guardrails. | Skeleton typecheck/test commands exist or documented gaps are explicit. |
 | 1. Backend trust boundary | Medium | NestJS API, seeded users, bcrypt password checks, JWT login, auth guard, role guard. | Admin login succeeds, missing/expired token returns `401`, user mutation returns `403`. |
-| 2. Patient domain API | Medium | PostgreSQL/Prisma model, DTO validation, service/repository layer, REST endpoints, normalized errors. | Patient CRUD plus search/sort/pagination are integration-tested. |
+| 2. Patient domain API | Medium | Patient contract, DTO validation, service/repository layer, deterministic demo repository, REST endpoints, normalized errors. | Patient CRUD plus search/sort/pagination are integration-tested; PostgreSQL/Prisma remains a documented hardening step. |
 | 3. Frontend workflow | Medium | Next.js app, login, protected patients route, table, form, details view, role-gated actions. | Admin and user flows work against the API with visible loading/error/empty states. |
 | 4. Reliability and polish | Medium | Optimistic update rollback, dev-only latency/failure simulation, responsive layout, accessible focus/validation states. | Failure paths are verified and mobile/tablet/desktop layouts remain usable. |
 | 5. Delivery defense | Low | README, verification evidence, known cuts, interview defense notes. | A reviewer can clone, run, test, and understand what was intentionally deferred. |
@@ -64,6 +66,7 @@ The core delivery is complete when the repository can demonstrate:
 | Version gate | Relevant requirement docs were read and latest researched APIs were used or a downgrade was documented. |
 | Auth/RBAC gate | Tests or manual proof for admin success, user `403`, and unauthenticated/expired `401`. |
 | Patient API gate | Tests for validation, not-found behavior, search, sort, pagination, and successful mutation. |
+| Persistence gate | Current deterministic demo storage is documented behind the repository boundary; PostgreSQL/Prisma 7 is deferred because it was not adopted in the verified slice. |
 | Frontend gate | Manual or automated proof for login, protected route, table states, form validation, details, and role UI. |
 | Privacy gate | No real patient data, no real credentials, no `.env*` exposure, no host-specific reusable paths. |
 | Delivery gate | README run/test instructions match real commands and all cuts are documented. |
@@ -84,6 +87,7 @@ The core delivery is complete when the repository can demonstrate:
 | Item | Reason | Revisit after |
 |---|---|---|
 | Cloud hosting | Optional bonus; can consume the timebox without improving core proof. | Local run, tests, and README are stable. |
+| PostgreSQL/Prisma implementation | Required target architecture and preferred ORM path, but Prisma 7 was intentionally not adopted during the verified slice. | Patient API contract, repository boundary, and integration tests are stable. |
 | Refresh tokens/password reset | Product auth lifecycle beyond the prompt's core trust boundary. | JWT login and expiry behavior are verified. |
 | Audit log and soft delete | Important for real clinical systems, but changes data model and UI semantics. | CRUD and error semantics are stable. |
 | Multi-tenancy | Changes every authorization and data-access path. | Single-tenant RBAC is tested. |

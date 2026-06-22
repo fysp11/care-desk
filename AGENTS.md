@@ -20,6 +20,8 @@ Each role card includes a copyable dispatch prompt.
 
 ## Delegation
 
+For Codex-native execution, use `.codex/agents/*.toml` for concrete subagent spawning and `.agents/agents/*.md` for human-readable role context.
+
 When working on a specific task from a roadmap phase/wave, prefer scoped
 subagents for context management:
 
@@ -35,6 +37,14 @@ subagents for context management:
   contracts; settle the contract first, then split work.
 - Use reviewer passes for auth/RBAC, validation, generated UI, and any slice
   that claims completion.
+
+- Preferred Codex workflow for non-trivial changes:
+  1. Spawn `repo_explorer` to map impact and call paths.
+  2. Spawn `test_auditor` to identify minimal guardrail tests.
+  3. Spawn `implementer` for the smallest viable patch.
+  4. Spawn `reviewer` to verify correctness, auth boundaries, and residual risk.
+  5. Report results with explicit cuts and next steps.
+
 - Synthesize subagent outputs in the main thread, then run the repo's smallest
   relevant verification command before reporting completion.
 

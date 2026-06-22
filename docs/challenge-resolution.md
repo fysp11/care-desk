@@ -29,19 +29,32 @@ apps/web
 
 apps/api
   NestJS + TypeScript
-  auth module, patients module, guards, DTOs, services, Prisma repository
+  auth module, patients module, guards, DTOs, services, repository boundary
 
 packages/shared
   shared patient and API contract types when useful
 
-prisma
-  schema, migrations, seed users, seed patients
+current shipped persistence
+  deterministic in-memory demo patient repository with fictional fixtures
+
+next persistence hardening
+  PostgreSQL + Prisma 7 schema, migrations, indexes, and seed flow
 ```
 
 The backend is the source of truth. The frontend may hide admin-only actions,
 but every mutation must still pass server-side authorization.
 
+Wave 2 shipped the patient API behind a repository boundary with deterministic
+in-memory demo storage. PostgreSQL remains the target relational persistence
+layer from the assignment, and Prisma 7 remains the preferred optional ORM path,
+but migration/schema/seed work is an explicit next hardening step rather than
+part of the verified slice.
+
 ## Data Model
+
+This is the logical domain model used by the API contract. The shipped slice
+represents it through the patient repository boundary; database constraints and
+migrations belong to the PostgreSQL/Prisma hardening step.
 
 ### `users`
 
@@ -147,12 +160,11 @@ Prioritize tests that defend the trust boundary.
 
 ## Implementation Order
 
-1. Scaffold the monorepo or app folders for Next.js, NestJS, Prisma, and
-   PostgreSQL.
+1. Scaffold the monorepo or app folders for Next.js and NestJS.
 2. Add seeded `admin` and `user` accounts with hashed demo passwords.
 3. Build `POST /auth/login`, token expiry, auth guard, and role guard.
-4. Add the patient model, migration, seed data, DTO validation, and repository
-   methods.
+4. Add the patient contract, DTO validation, repository boundary, deterministic
+   demo repository, and service methods.
 5. Build patient API endpoints and integration tests for RBAC and validation.
 6. Build login, protected routes, patients table, form, details view, and
    role-gated actions.
@@ -160,6 +172,18 @@ Prioritize tests that defend the trust boundary.
    behavior.
 8. Reserve the final pass for checks, README instructions, and cut
    documentation.
+
+### Next Persistence Hardening
+
+Replace the deterministic demo repository with PostgreSQL and Prisma 7 after
+the verified slice:
+
+- Add `prisma.config.ts`, generated client output, and a Prisma 7 driver
+  adapter.
+- Add schema and migrations for users and patients, including patient email
+  uniqueness and sortable indexes for `lastName` and `dob`.
+- Add seed data using only fictional demo users and patients.
+- Reuse the existing API integration suite as repository parity coverage.
 
 ## Defensible Cuts
 
@@ -169,6 +193,7 @@ Prioritize tests that defend the trust boundary.
 | Full audit log | Changes schema, UI, retention, and compliance assumptions | Add append-only patient events before real clinical use |
 | Multi-tenancy | Tenant scope affects every query and guard | Add organization model and tenant-aware data access |
 | Refresh tokens/password reset | Auth lifecycle product work is outside the core slice | Add when identity management is in scope |
+| PostgreSQL/Prisma implementation | The repository boundary proved the API contract while avoiding Prisma 7 migration risk inside the timebox | Replace deterministic demo storage with PostgreSQL/Prisma 7, migrations, indexes, seeds, and parity tests |
 | Rate limiting/caching | Depends on deployment and traffic profile | Add after observing real usage patterns |
 | Broad mutation testing | Useful but too expensive for 3-4 hours | Run focused mutation checks on RBAC and validation later |
 
@@ -181,4 +206,3 @@ Use this as the short defense:
 > risky behavior. The UI is usable and responsive, but intentionally bounded.
 > I cut broader product features so I could verify the core workflow, document
 > tradeoffs, and own every generated or assisted line in the follow-up.
-

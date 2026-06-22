@@ -11,7 +11,7 @@ the relevant checks, and understand which tradeoffs are intentional.
 
 ## Implementation Status
 
-Status: implemented; final reviewer approval remains the handoff step.
+Status: implemented; final reviewer approval is completed in this handoff step.
 
 The README now documents:
 
@@ -22,6 +22,9 @@ The README now documents:
 - Verification evidence from Waves 1-4, including the Wave 4 build sandbox
   blocker.
 - Known cuts and concise interview-defense notes.
+
+This pass also aligns linked delivery docs so they do not imply
+PostgreSQL/Prisma shipped in the verified slice.
 
 ## Source Alignment
 
@@ -61,8 +64,10 @@ The README now documents:
 | Done | Update README run/test/setup instructions. | Docs worker | Matches root package scripts and documented local ports. |
 | Done | Add verification evidence. | Docs worker | Includes API/web test and typecheck evidence plus the build blocker boundary. |
 | Done | Document shipped scope and cuts. | Docs worker | Reflects the in-memory patient repository and PostgreSQL/Prisma next step. |
+| Done | Align linked persistence-scope wording. | Docs worker | `docs/challenge-resolution.md` and `docs/roadmap.md` now frame PostgreSQL/Prisma as next hardening, not shipped scope. |
 | Done | Add interview-defense notes. | Docs worker | Covers RBAC, validation, persistence, reliability, and AI-assisted ownership. |
 | Done | Run documentation sanity checks. | Docs worker | Grep checked for stale README scaffold/deferred wording. |
+| Done | Run final handoff reviewer checks. | Main thread | Verified wave artifacts align to challenge scope, roadmap, and gate requirements; no blocking correctness, security, or privacy findings. |
 
 ## Verification Plan
 
@@ -74,10 +79,12 @@ Before Wave 5 is complete:
 - [x] README documents build sandbox blocker and current verification evidence.
 - [x] Known cuts include PostgreSQL/Prisma persistence, production secrets,
   browser E2E matrix, cloud hosting, and audit/soft-delete hardening.
+- [x] Linked delivery docs distinguish the shipped deterministic demo
+  repository from the PostgreSQL/Prisma 7 hardening step.
 - [x] No stale wording says patient endpoints are still deferred.
 - [x] No real credentials, real patient data, `.env*` contents, or
   host-specific reusable paths are introduced.
-- [ ] Reviewer approves delivery-defense docs.
+- [x] Reviewer approves delivery-defense docs.
 
 ## Exit Criteria
 

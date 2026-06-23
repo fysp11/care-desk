@@ -1,13 +1,14 @@
 {
   "name": "@care-desk/web",
+  "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "next build",
     "dev": "next dev",
     "start": "next start",
-    "test": "bun test test",
-    "test:e2e": "playwright test",
+    "test": "vitest run test",
+    "test:e2e": "npx playwright test",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

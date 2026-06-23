@@ -45,7 +45,7 @@ The core delivery is complete when the repository can demonstrate:
 | 1. Backend trust boundary | Medium | NestJS API, seeded users, bcrypt password checks, JWT login, auth guard, role guard. | Admin login succeeds, missing/expired token returns `401`, user mutation returns `403`. |
 | 2. Patient domain API | Medium | Patient contract, DTO validation, service/repository layer, deterministic demo repository, REST endpoints, normalized errors. | Patient CRUD plus search/sort/pagination are integration-tested; PostgreSQL/Prisma remains a documented hardening step. |
 | 3. Frontend workflow | Medium | Next.js app, login, protected patients route, table, form, details view, role-gated actions. | Admin and user flows work against the API with visible loading/error/empty states. |
-| 4. Reliability and polish | Medium | Optimistic update rollback, dev-only latency/failure simulation, responsive layout, accessible focus/validation states. | Failure paths are verified and mobile/tablet/desktop layouts remain usable. |
+| 4. Reliability and polish | Medium | Optimistic update rollback, recoverable API failure states, responsive layout, accessible focus/validation states. | Failure paths are verified and mobile/tablet/desktop layouts remain usable. |
 | 5. Delivery defense | Low | README, verification evidence, known cuts, interview defense notes. | A reviewer can clone, run, test, and understand what was intentionally deferred. |
 | 6. Optional stretch | Medium/High | Cloud hosting, audit log, rate limiting, richer UI polish. | Only attempted after phases 1-5 are stable and verified. |
 | 7. PostgreSQL + Prisma + Compose hardening | Medium | Switch patient persistence to PostgreSQL + Prisma 7 with migrations, seeds, and local Compose setup. | Patient API contract remains intact and tests run against database state. |
@@ -57,7 +57,7 @@ The core delivery is complete when the repository can demonstrate:
 3. Implement backend validation before frontend form polish.
 4. Implement API tests before broad UI work.
 5. Implement frontend role gating after backend RBAC exists.
-6. Add simulated failure only after the normal path is stable.
+6. Verify failed API paths only after the normal path is stable.
 7. Stop feature work before the README and verification evidence are at risk.
 8. Run persistence hardening against a local PostgreSQL service (Compose).
 

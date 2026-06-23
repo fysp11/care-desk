@@ -12,3 +12,5 @@ apps/web/test-results/
 *.tsbuildinfo
 .DS_Store
 *.log
+.gitnexus/
+dist-test/

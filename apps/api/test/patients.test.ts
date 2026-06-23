@@ -5,13 +5,13 @@ import {
   describe,
   expect,
   test,
-} from 'bun:test';
+} from 'vitest';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import inject from 'light-my-request';
 
 import { AppModule } from '../src/app.module.js';
-import type { LoginResponse } from '../src/auth/types.js';
+import type { LoginResponse } from '../src/auth/types/auth.types.js';
 import { createValidationPipe } from '../src/common/validation.js';
 import { PrismaPatientsRepository } from '../src/patients/patients.repository.js';
 import type {

@@ -1,6 +1,10 @@
 'use client';
 
 import type { PatientListQuery } from '../lib/types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Field, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
 
 interface PatientListControlsProps {
   readonly isAdmin: boolean;
@@ -16,15 +20,12 @@ export function PatientListControls({
   query,
 }: PatientListControlsProps) {
   return (
-    <div className="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
+    <Card>
+      <CardContent className="p-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <label
-          className="block flex-1 text-sm font-medium text-slate-800"
-          htmlFor="patient-search"
-        >
-          Search patients
-          <input
-            className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm transition placeholder:text-slate-400 hover:border-slate-400 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500"
+        <Field className="flex-1">
+          <FieldLabel htmlFor="patient-search">Search patients</FieldLabel>
+          <Input
             id="patient-search"
             onChange={(event) =>
               onQueryChange({
@@ -37,15 +38,12 @@ export function PatientListControls({
             type="search"
             value={query.search}
           />
-        </label>
+        </Field>
 
-        <label
-          className="block text-sm font-medium text-slate-800"
-          htmlFor="page-size"
-        >
-          Rows
+        <Field>
+          <FieldLabel htmlFor="page-size">Rows</FieldLabel>
           <select
-            className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm transition hover:border-slate-400 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 lg:w-28"
+            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-xs transition hover:border-ring/60 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 lg:w-28"
             id="page-size"
             onChange={(event) =>
               onQueryChange({
@@ -60,18 +58,15 @@ export function PatientListControls({
             <option value={10}>10</option>
             <option value={20}>20</option>
           </select>
-        </label>
+        </Field>
 
         {isAdmin ? (
-          <button
-            className="rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
-            onClick={onCreate}
-            type="button"
-          >
+          <Button onClick={onCreate} type="button">
             New patient
-          </button>
+          </Button>
         ) : null}
       </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

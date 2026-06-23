@@ -1,15 +1,29 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import type { INestApplication } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { afterAll, beforeAll, describe, expect, test } from 'vitest';
+import {
+  Controller,
+  Get,
+  Module,
+  UseGuards,
+  type INestApplication,
+} from '@nestjs/common';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import inject from 'light-my-request';
 
-import { AppModule } from '../src/app.module.js';
+import { AuthModule } from '../src/auth/auth.module.js';
+import { CurrentUser } from '../src/auth/decorators/current-user.decorator.js';
+import { Roles } from '../src/auth/decorators/roles.decorator.js';
+import { JwtAuthGuard } from '../src/auth/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../src/auth/guards/roles.guard.js';
 import {
   DEMO_JWT_SECRET,
   JWT_ALGORITHM,
 } from '../src/auth/jwt.constants.js';
-import type { JwtPayload, LoginResponse } from '../src/auth/types.js';
+import type {
+  AuthenticatedUser,
+  JwtPayload,
+  LoginResponse,
+} from '../src/auth/types/auth.types.js';
 import { createValidationPipe } from '../src/common/validation.js';
 
 type VerifiedPayload = JwtPayload & {
@@ -35,6 +49,53 @@ const injectRequest = inject as unknown as (
 
 let dispatch: unknown;
 let jwtService: JwtService;
+
+type PublicProbeUser = {
+  readonly id: string;
+  readonly email: string;
+  readonly role: AuthenticatedUser['role'];
+};
+
+const toPublicProbeUser = (user: AuthenticatedUser): PublicProbeUser => ({
+  email: user.email,
+  id: user.id,
+  role: user.role,
+});
+
+@Controller('auth/probe')
+class AuthProbeTestController {
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  me(@CurrentUser() user: AuthenticatedUser): { readonly user: PublicProbeUser } {
+    return { user: toPublicProbeUser(user) };
+  }
+
+  @Get('admin')
+  @Roles('admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  adminOnly(
+    @CurrentUser() user: AuthenticatedUser,
+  ): { readonly ok: true; readonly user: PublicProbeUser } {
+    return { ok: true, user: toPublicProbeUser(user) };
+  }
+}
+
+@Module({
+  controllers: [AuthProbeTestController],
+  imports: [
+    AuthModule,
+    JwtModule.register({
+      secret: DEMO_JWT_SECRET,
+      signOptions: {
+        algorithm: JWT_ALGORITHM,
+      },
+      verifyOptions: {
+        algorithms: [JWT_ALGORITHM],
+      },
+    }),
+  ],
+})
+class AuthProbeTestModule {}
 
 const postLogin = (body: unknown): Promise<TestResponse> =>
   injectRequest(dispatch, {
@@ -77,7 +138,7 @@ const getProbe = async (
 describe('auth trust boundary', () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [AuthProbeTestModule],
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -140,6 +201,21 @@ describe('auth trust boundary', () => {
   test('invalid login body returns 400', async () => {
     const response = await postLogin({
       email: 'not-an-email',
+    });
+
+    expect(response.statusCode).toBe(400);
+
+    const body = response.json<ApiErrorBody>();
+    expect(body.code).toBe('VALIDATION_ERROR');
+  });
+
+  test('missing login body returns 400', async () => {
+    const response = await injectRequest(dispatch, {
+      method: 'POST',
+      url: '/auth/login',
+      headers: {
+        'content-type': 'application/json',
+      },
     });
 
     expect(response.statusCode).toBe(400);

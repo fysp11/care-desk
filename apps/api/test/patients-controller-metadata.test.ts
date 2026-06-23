@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 import { RequestMethod } from '@nestjs/common';
 import {
   GUARDS_METADATA,
@@ -7,9 +7,9 @@ import {
   ROUTE_ARGS_METADATA,
 } from '@nestjs/common/constants.js';
 
-import { JwtAuthGuard } from '../src/auth/jwt-auth.guard.js';
-import { ROLES_KEY } from '../src/auth/roles.decorator.js';
-import { RolesGuard } from '../src/auth/roles.guard.js';
+import { ROLES_KEY } from '../src/auth/decorators/roles.decorator.js';
+import { JwtAuthGuard } from '../src/auth/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../src/auth/guards/roles.guard.js';
 import { CreatePatientDto } from '../src/patients/dto/create-patient.dto.js';
 import { ListPatientsDto } from '../src/patients/dto/list-patients.dto.js';
 import { UpdatePatientDto } from '../src/patients/dto/update-patient.dto.js';

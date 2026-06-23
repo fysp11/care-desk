@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
@@ -84,7 +84,6 @@ const createRepository = (
         total: 0,
       } satisfies PatientListResponse;
     },
-    async reset() {},
     async update(id, input) {
       state.updatedInputs.push({ id, input });
 

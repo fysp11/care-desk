@@ -70,11 +70,20 @@ subagents for context management:
 ## Architecture invariants
 
 - Assign every behavior to one primary architectural responsibility.
+- Keep NestJS API code feature-first by default. Feature-specific controllers,
+  services, DTOs, guards, decorators, repositories, and types should live under
+  the owning module folder, not global layer-first folders.
 - Do not mix presentation, transport, application orchestration, domain logic,
   persistence, and external integrations in the same module.
 - Domain code must not import UI frameworks, HTTP frameworks, databases,
   persistence clients, or external-service SDKs.
 - UI code must not implement domain policy or access persistence directly.
+- Route/page components should compose views and delegate workflow/state; do not
+  concentrate fetching, validation, auth policy, mutation orchestration, and
+  rendering in a single page.
+- Hooks should own cohesive interaction workflows, not become unbounded service
+  containers. Extract query, selection, mutation, and confirmation concerns when
+  they gain unrelated reasons to change.
 - Routes, controllers, resolvers, and server actions validate/adapt transport
   input, delegate execution, and translate results.
 - Application use cases orchestrate workflows; infrastructure implements
@@ -120,7 +129,7 @@ If a check cannot run, state why and document the residual risk.
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **care-desk** (3090 symbols, 5061 relationships, 84 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **care-desk** (3209 symbols, 5451 relationships, 81 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
 

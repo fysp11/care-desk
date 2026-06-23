@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import type { ArgumentMetadata } from "@nestjs/common";
 import { Type } from "class-transformer";
 import { IsString, Matches, ValidateNested } from "class-validator";
@@ -151,16 +151,17 @@ describe("validation pipe", () => {
     throw new Error("Expected validation pipe to reject invalid nested input.");
   });
 
-  test("keeps validation pipe strict without transforming DTO output", async () => {
+  test("keeps validation pipe strict while transforming DTO output", async () => {
     const pipe = createValidationPipe();
     const body = validPatientBody();
 
-    await expect(
-      pipe.transform(body, bodyMetadata(CreatePatientDto)),
-    ).resolves.toEqual(body);
-    await expect(
-      pipe.transform(body, bodyMetadata(CreatePatientDto)),
-    ).resolves.not.toBeInstanceOf(CreatePatientDto);
+    const transformed = await pipe.transform(
+      body,
+      bodyMetadata(CreatePatientDto),
+    );
+
+    expect(transformed).toBeInstanceOf(CreatePatientDto);
+    expect(transformed).toEqual(expect.objectContaining(body));
 
     try {
       await pipe.transform(
@@ -213,25 +214,33 @@ describe("validation pipe", () => {
         validPatientBody({ dob: "2024-02-29" }),
         bodyMetadata(CreatePatientDto),
       ),
-    ).resolves.toEqual(validPatientBody({ dob: "2024-02-29" }));
+    ).resolves.toEqual(
+      expect.objectContaining(validPatientBody({ dob: "2024-02-29" })),
+    );
     await expect(
       pipe.transform(
         validPatientBody({ dob: "2024-02-29" }),
         bodyMetadata(UpdatePatientDto),
       ),
-    ).resolves.toEqual(validPatientBody({ dob: "2024-02-29" }));
+    ).resolves.toEqual(
+      expect.objectContaining(validPatientBody({ dob: "2024-02-29" })),
+    );
     await expect(
       pipe.transform(
         validPatientBody({ dob: "2000-02-29" }),
         bodyMetadata(CreatePatientDto),
       ),
-    ).resolves.toEqual(validPatientBody({ dob: "2000-02-29" }));
+    ).resolves.toEqual(
+      expect.objectContaining(validPatientBody({ dob: "2000-02-29" })),
+    );
     await expect(
       pipe.transform(
         validPatientBody({ dob: "2000-02-29" }),
         bodyMetadata(UpdatePatientDto),
       ),
-    ).resolves.toEqual(validPatientBody({ dob: "2000-02-29" }));
+    ).resolves.toEqual(
+      expect.objectContaining(validPatientBody({ dob: "2000-02-29" })),
+    );
 
     await expectDobValidationError(CreatePatientDto, "2025-02-29");
     await expectDobValidationError(UpdatePatientDto, "2025-02-29");
@@ -267,13 +276,17 @@ describe("validation pipe", () => {
         validPatientBody({ phoneNumber: "555 0199" }),
         bodyMetadata(CreatePatientDto),
       ),
-    ).resolves.toEqual(validPatientBody({ phoneNumber: "555 0199" }));
+    ).resolves.toEqual(
+      expect.objectContaining(validPatientBody({ phoneNumber: "555 0199" })),
+    );
     await expect(
       pipe.transform(
         validPatientBody({ phoneNumber: "555 0199" }),
         bodyMetadata(UpdatePatientDto),
       ),
-    ).resolves.toEqual(validPatientBody({ phoneNumber: "555 0199" }));
+    ).resolves.toEqual(
+      expect.objectContaining(validPatientBody({ phoneNumber: "555 0199" })),
+    );
 
     for (const metatype of [CreatePatientDto, UpdatePatientDto]) {
       await expectFieldValidationMessage(
@@ -308,7 +321,7 @@ describe("validation pipe", () => {
 
     await expect(
       pipe.transform({}, queryMetadata(ListPatientsDto)),
-    ).resolves.toEqual({});
+    ).resolves.toEqual(expect.any(ListPatientsDto));
     await expect(
       pipe.transform(
         {
@@ -320,13 +333,15 @@ describe("validation pipe", () => {
         },
         queryMetadata(ListPatientsDto),
       ),
-    ).resolves.toEqual({
-      limit: "50",
-      page: "2",
-      search: "Nora Frost",
-      sortBy: "email",
-      sortDir: "desc",
-    });
+    ).resolves.toEqual(
+      expect.objectContaining({
+        limit: "50",
+        page: "2",
+        search: "Nora Frost",
+        sortBy: "email",
+        sortDir: "desc",
+      }),
+    );
 
     for (const [field, value, message] of [
       ["page", "0", "page must be a positive safe integer."],

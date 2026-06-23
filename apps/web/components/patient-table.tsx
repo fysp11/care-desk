@@ -5,6 +5,18 @@ import type {
   PatientSortBy,
   PatientSortDir,
 } from '../lib/types';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 interface PatientTableProps {
   readonly isAdmin: boolean;
@@ -48,11 +60,11 @@ export function PatientTable({
   sortDir,
 }: PatientTableProps) {
   return (
-    <div className="overflow-x-auto rounded-md border border-slate-200 bg-white shadow-sm">
-      <table className="min-w-[760px] w-full border-collapse text-left text-sm">
-        <caption className="sr-only">Patients</caption>
-        <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-600">
-          <tr>
+    <Card className="overflow-hidden">
+      <Table className="min-w-[760px]">
+        <TableCaption className="sr-only">Patients</TableCaption>
+        <TableHeader className="bg-muted/60">
+          <TableRow>
             {sortableColumns.map((column) => {
               const isSorted = sortBy === column.field;
               const indicator = isSorted
@@ -67,88 +79,99 @@ export function PatientTable({
                 : 'none';
 
               return (
-                <th
+                <TableHead
                   aria-sort={ariaSort}
-                  className="px-4 py-3 font-semibold"
                   key={column.field}
                   scope="col"
                 >
-                  <button
+                  <Button
                     aria-label={`Sort by ${column.label}, currently ${indicator}`}
-                    className="inline-flex items-center gap-1 rounded-sm text-left transition hover:text-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+                    className="h-auto justify-start gap-1 p-0 text-xs uppercase text-muted-foreground hover:text-primary"
                     onClick={() => onSort(column.field)}
                     type="button"
+                    variant="ghost"
                   >
                     {column.label}
-                    <span aria-hidden="true" className="text-slate-400">
+                    <span aria-hidden="true" className="text-muted-foreground">
                       {isSorted ? (sortDir === 'asc' ? 'A-Z' : 'Z-A') : ''}
                     </span>
-                  </button>
-                </th>
+                  </Button>
+                </TableHead>
               );
             })}
-            <th className="px-4 py-3 font-semibold" scope="col">
+            <TableHead scope="col">
               Phone
-            </th>
-            <th className="px-4 py-3 text-right font-semibold" scope="col">
+            </TableHead>
+            <TableHead className="text-right" scope="col">
               Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {isLoading ? <LoadingRows /> : null}
           {!isLoading && patients.length === 0 ? (
-            <tr>
-              <td className="px-4 py-8 text-center text-slate-600" colSpan={6}>
+            <TableRow>
+              <TableCell className="py-8 text-center text-muted-foreground" colSpan={6}>
                 No patients match the current view.
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ) : null}
           {!isLoading
             ? patients.map((patient) => (
-                <tr className="transition hover:bg-slate-50" key={patient.id}>
-                  <td className="px-4 py-3 font-medium text-slate-950">
+                <TableRow key={patient.id}>
+                  <TableCell className="font-medium text-foreground">
                     {patient.lastName}
-                  </td>
-                  <td className="px-4 py-3 text-slate-700">{patient.firstName}</td>
-                  <td className="px-4 py-3 text-slate-700">{formatDate(patient.dob)}</td>
-                  <td className="px-4 py-3 text-slate-700">{patient.email}</td>
-                  <td className="px-4 py-3 text-slate-700">{patient.phoneNumber}</td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {patient.firstName}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {formatDate(patient.dob)}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {patient.email}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {patient.phoneNumber}
+                  </TableCell>
+                  <TableCell>
                     <div className="flex flex-wrap justify-end gap-2">
-                      <button
-                        className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-800 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+                      <Button
                         onClick={() => onDetails(patient)}
+                        size="sm"
                         type="button"
+                        variant="outline"
                       >
                         Details
-                      </button>
+                      </Button>
                       {isAdmin ? (
                         <>
-                          <button
-                            className="rounded-md border border-sky-300 px-3 py-1.5 text-xs font-medium text-sky-800 transition hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
+                          <Button
                             onClick={() => onEdit(patient)}
+                            size="sm"
                             type="button"
+                            variant="secondary"
                           >
                             Edit
-                          </button>
-                          <button
-                            className="rounded-md border border-red-300 px-3 py-1.5 text-xs font-medium text-red-800 transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                          </Button>
+                          <Button
                             onClick={() => onDelete(patient)}
+                            size="sm"
                             type="button"
+                            variant="destructive"
                           >
                             Delete
-                          </button>
+                          </Button>
                         </>
                       ) : null}
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))
             : null}
-        </tbody>
-      </table>
-    </div>
+        </TableBody>
+      </Table>
+    </Card>
   );
 }
 
@@ -156,13 +179,13 @@ function LoadingRows() {
   return (
     <>
       {[0, 1, 2, 3].map((row) => (
-        <tr key={row}>
+        <TableRow key={row}>
           {[0, 1, 2, 3, 4, 5].map((cell) => (
-            <td className="px-4 py-4" key={cell}>
-              <div className="h-4 animate-pulse rounded bg-slate-200" />
-            </td>
+            <TableCell className="py-4" key={cell}>
+              <Skeleton className="h-4" />
+            </TableCell>
           ))}
-        </tr>
+        </TableRow>
       ))}
     </>
   );

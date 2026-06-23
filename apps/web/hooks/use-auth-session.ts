@@ -30,9 +30,7 @@ export function useAuthSession() {
 
   useEffect(() => {
     const browserStorage = getBrowserStorage();
-    const storedSession = browserStorage
-      ? readStoredSession(browserStorage)
-      : null;
+    const storedSession = readStoredSession(browserStorage);
 
     if (storedSession) {
       setSession(storedSession);
@@ -44,9 +42,7 @@ export function useAuthSession() {
   const handleAuthFailure = useCallback(() => {
     const browserStorage = getBrowserStorage();
 
-    if (browserStorage) {
-      clearStoredSession(browserStorage);
-    }
+    clearStoredSession(browserStorage);
 
     setSession(null);
     setAuthNotice(
@@ -78,9 +74,7 @@ export function useAuthSession() {
         };
         const browserStorage = getBrowserStorage();
 
-        if (browserStorage) {
-          saveStoredSession(browserStorage, nextSession);
-        }
+        saveStoredSession(browserStorage, nextSession);
 
         setSession(nextSession);
         setAuthNotice(null);
@@ -107,9 +101,7 @@ export function useAuthSession() {
   const handleLogout = useCallback(() => {
     const browserStorage = getBrowserStorage();
 
-    if (browserStorage) {
-      clearStoredSession(browserStorage);
-    }
+    clearStoredSession(browserStorage);
 
     setSession(null);
     setAuthNotice('You have signed out.');

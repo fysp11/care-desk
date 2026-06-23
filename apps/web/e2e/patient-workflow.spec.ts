@@ -8,7 +8,6 @@ import { execFileSync } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { FAILURE_SIMULATION_STORAGE_KEY } from '../lib/failure-simulation';
 import { SESSION_STORAGE_KEY } from '../lib/session';
 
 const apiBaseURL =
@@ -73,33 +72,11 @@ const createPatientViaApi = async (
   expect(createResponse.status()).toBe(201);
 };
 
-const setFailureSimulation = async (
-  page: Page,
-  target: 'detail' | 'list',
-): Promise<void> => {
-  await page.evaluate(
-    ({ key, selectedTarget }) => {
-      window.localStorage.setItem(
-        key,
-        JSON.stringify({
-          enabled: true,
-          latencyMs: 0,
-          target: selectedTarget,
-        }),
-      );
-    },
-    {
-      key: FAILURE_SIMULATION_STORAGE_KEY,
-      selectedTarget: target,
-    },
-  );
-};
-
 test.describe('patient management browser smoke', () => {
   test.describe.configure({ mode: 'serial' });
 
   test.beforeEach(() => {
-    execFileSync('bun', ['--filter', '@care-desk/api', 'db:seed'], {
+    execFileSync('npm', ['run', 'db:seed', '--workspace', '@care-desk/api'], {
       cwd: repoRoot,
       stdio: 'ignore',
     });
@@ -126,33 +103,31 @@ test.describe('patient management browser smoke', () => {
     const lastName = `Smoke${runId}`;
 
     await page.getByRole('button', { name: 'New patient' }).click();
-    const createForm = page.locator('aside form');
-    await createForm.getByLabel('First name', { exact: true }).fill('Browser');
-    await createForm.getByLabel('Last name', { exact: true }).fill(lastName);
-    await createForm.getByLabel('Email', { exact: true }).fill(email);
-    await createForm.getByLabel('Phone number').fill('+1 555 0999');
-    await createForm.getByLabel('Date of birth').fill('1990-01-15');
+    await page.getByLabel('First name', { exact: true }).fill('Browser');
+    await page.getByLabel('Last name', { exact: true }).fill(lastName);
+    await page.getByLabel('Email', { exact: true }).fill(email);
+    await page.getByLabel('Phone number').fill('+1 555 0999');
+    await page.getByLabel('Date of birth').fill('1990-01-15');
     await page.getByRole('button', { name: 'Create', exact: true }).click();
 
-    await expect(page.getByText(email)).toBeVisible();
+    const createdRow = page.getByRole('row').filter({ hasText: email });
+    await expect(createdRow).toBeVisible();
     await expect(
       page.getByRole('heading', { name: `Browser ${lastName}` }),
     ).toBeVisible();
 
-    const createdRow = page.getByRole('row').filter({ hasText: email });
     await createdRow.getByRole('button', { name: 'Edit' }).click();
-    const editForm = page.locator('aside form');
-    await editForm
-      .getByLabel('First name', { exact: true })
-      .fill('Browser Edited');
+    await page.getByLabel('First name', { exact: true }).fill('Browser Edited');
     await page.getByRole('button', { name: 'Save' }).click();
 
-    await expect(page.getByText('Browser Edited')).toBeVisible();
+    const editedRow = page.getByRole('row').filter({ hasText: email });
+    await expect(
+      editedRow.getByRole('cell', { name: 'Browser Edited' }),
+    ).toBeVisible();
     await expect(
       page.getByRole('heading', { name: `Browser Edited ${lastName}` }),
     ).toBeVisible();
 
-    const editedRow = page.getByRole('row').filter({ hasText: email });
     page.once('dialog', (dialog) => dialog.accept());
     await editedRow.getByRole('button', { name: 'Delete' }).click();
 
@@ -239,12 +214,30 @@ test.describe('patient management browser smoke', () => {
     await expect(page.getByText('Page 1 of 1')).toBeVisible();
   });
 
-  test('list failure state can be retried after local simulation is disabled', async ({
+  test('list failure state can be retried after the API recovers', async ({
     page,
   }) => {
+    let failedOnce = false;
+
     await loginAs(page, 'Admin');
 
-    await setFailureSimulation(page, 'list');
+    await page.route(`${apiBaseURL}/patients?**`, (route) => {
+      if (!failedOnce) {
+        failedOnce = true;
+
+        return route.fulfill({
+          body: JSON.stringify({
+            code: 'UPSTREAM_UNAVAILABLE',
+            message: 'Patients service is temporarily unavailable.',
+          }),
+          contentType: 'application/json',
+          status: 503,
+        });
+      }
+
+      return route.continue();
+    });
+
     await page.reload();
 
     const listErrorAlert = page
@@ -252,21 +245,40 @@ test.describe('patient management browser smoke', () => {
       .filter({ hasText: 'Unable to load patients' });
 
     await expect(listErrorAlert).toBeVisible();
-    await expect(page.getByText('Simulated list failure.')).toBeVisible();
+    await expect(
+      page.getByText('Patients service is temporarily unavailable.'),
+    ).toBeVisible();
 
-    await page.getByLabel('Local reliability simulation').uncheck();
+    await page.getByRole('button', { name: 'Retry' }).click();
 
     await expect(page.getByText('ada.brooks@example.com')).toBeVisible();
     await expect(listErrorAlert).toHaveCount(0);
   });
 
-  test('detail failure state can be retried after local simulation is disabled', async ({
+  test('detail failure state can be retried after the API recovers', async ({
     page,
   }) => {
+    let failedOnce = false;
+
+    await page.route(`${apiBaseURL}/patients/*`, (route) => {
+      if (route.request().method() !== 'GET' || failedOnce) {
+        return route.continue();
+      }
+
+      failedOnce = true;
+
+      return route.fulfill({
+        body: JSON.stringify({
+          code: 'UPSTREAM_UNAVAILABLE',
+          message: 'Patient detail service is temporarily unavailable.',
+        }),
+        contentType: 'application/json',
+        status: 503,
+      });
+    });
+
     await loginAs(page, 'Admin');
 
-    await setFailureSimulation(page, 'detail');
-    await page.reload();
     await expect(page.getByText('ada.brooks@example.com')).toBeVisible();
     await page.getByRole('button', { name: 'Details' }).first().click();
 
@@ -275,9 +287,10 @@ test.describe('patient management browser smoke', () => {
       .filter({ hasText: 'Unable to refresh record' });
 
     await expect(detailErrorAlert).toBeVisible();
-    await expect(page.getByText('Simulated detail failure.')).toBeVisible();
+    await expect(
+      page.getByText('Patient detail service is temporarily unavailable.'),
+    ).toBeVisible();
 
-    await page.getByLabel('Local reliability simulation').uncheck();
     await page.getByRole('button', { name: 'Retry details' }).click();
 
     await expect(page.getByText('Patient record')).toBeVisible();

@@ -1,16 +1,25 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 import { findDemoUserByEmail } from './demo-users.js';
+import type { LoginDto } from './dto/login.dto.js';
 import { JWT_ALGORITHM, JWT_EXPIRES_IN } from './jwt.constants.js';
-import type { LoginDto } from './login.dto.js';
-import type { JwtPayload, LoginResponse } from './types.js';
+import type { JwtPayload, LoginResponse } from './types/auth.types.js';
 
+@Injectable()
 export class AuthService {
   constructor(private readonly jwtService: JwtService) {}
 
   async login(loginDto: LoginDto): Promise<LoginResponse> {
+    if (!this.isLoginDto(loginDto)) {
+      throw this.invalidLoginRequestError();
+    }
+
     const user = findDemoUserByEmail(loginDto.email);
 
     if (!user) {
@@ -52,7 +61,24 @@ export class AuthService {
       message: 'Email or password is invalid.',
     });
   }
-}
 
-Reflect.defineMetadata('design:paramtypes', [JwtService], AuthService);
-Injectable()(AuthService);
+  private invalidLoginRequestError(): BadRequestException {
+    return new BadRequestException({
+      code: 'VALIDATION_ERROR',
+      message: 'Request validation failed.',
+    });
+  }
+
+  private isLoginDto(value: unknown): value is LoginDto {
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+
+    const candidate = value as Record<string, unknown>;
+
+    return (
+      typeof candidate.email === 'string' &&
+      typeof candidate.password === 'string'
+    );
+  }
+}

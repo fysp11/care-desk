@@ -1,35 +1,36 @@
 {
   "name": "care-desk",
+  "version": "0.0.0",
   "private": true,
   "type": "module",
-  "packageManager": "bun@1.3.14",
   "engines": {
-    "node": ">=20.19.0",
-    "bun": ">=1.3.0"
+    "node": ">=20.19.0"
   },
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
-    "up": "bun install --frozen-lockfile && bun run migrate && bun run seed && bun run start",
+    "up": "npm install && npm run migrate && npm run seed && npm run start",
     "down": "docker compose down",
-    "migrate": "docker compose up -d --wait postgres && bun --filter @care-desk/api db:migrate:deploy && bun --filter @care-desk/api db:generate",
-    "seed": "docker compose up -d --wait postgres && bun --filter @care-desk/api db:seed",
-    "dev": "bun run up && docker compose logs -f api web",
+    "restart": "npm run down && npm run up",
+    "migrate": "docker compose up -d --wait postgres && npm run db:migrate:deploy --workspace @care-desk/api && npm run db:generate --workspace @care-desk/api",
+    "seed": "docker compose up -d --wait postgres && npm run db:seed --workspace @care-desk/api",
+    "dev": "npm run up && docker compose logs -f api web",
     "start": "docker compose up -d --wait api web",
-    "build": "bun --filter @care-desk/shared build && bun --filter @care-desk/api build && bun --filter @care-desk/web build",
-    "lint": "bun run typecheck",
-    "test": "bun --filter @care-desk/shared test && bun --filter @care-desk/api test && bun --filter @care-desk/web test",
-    "test:e2e": "bun --filter @care-desk/web test:e2e",
-    "typecheck": "bun --filter @care-desk/api db:generate && bun --filter @care-desk/shared typecheck && bun --filter @care-desk/api typecheck && bun --filter @care-desk/web typecheck"
+    "build": "npm run build --workspace @care-desk/shared && npm run build --workspace @care-desk/api && npm run build --workspace @care-desk/web",
+    "lint": "npm run typecheck",
+    "test": "npm run test --workspace @care-desk/shared && npm run test --workspace @care-desk/api && npm run test --workspace @care-desk/web",
+    "test:e2e": "npm run test:e2e --workspace @care-desk/web",
+    "typecheck": "npm run db:generate --workspace @care-desk/api && npm run typecheck --workspace @care-desk/shared && npm run typecheck --workspace @care-desk/api && npm run typecheck --workspace @care-desk/web"
   },
   "devDependencies": {
     "@prisma/adapter-pg": "7.8.0",
     "@stryker-mutator/core": "9.6.1",
-    "@types/bun": "1.3.14",
     "@types/node": "^22.0.0",
     "pg": "8.16.0",
+    "tsx": "4.21.0",
+    "vitest": "3.2.4",
     "typescript": "6.0.3"
   }
 }

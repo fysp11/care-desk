@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 import { ConflictException } from '@nestjs/common';
 
 import { PrismaPatientsRepository } from '../src/patients/patients.repository.js';

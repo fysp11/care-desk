@@ -28,14 +28,14 @@ export default defineConfig({
   webServer: [
     {
       command:
-        'bun run migrate && bun run seed && bun --filter @care-desk/api dev',
+        'npm run migrate && npm run seed && npm run dev --workspace @care-desk/api',
       cwd: repoRoot,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
       url: 'http://127.0.0.1:3001/patients',
     },
     {
-      command: 'bun --filter @care-desk/web dev',
+      command: 'npm run dev --workspace @care-desk/web',
       cwd: repoRoot,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,

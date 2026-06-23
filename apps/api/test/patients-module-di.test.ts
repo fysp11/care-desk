@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 
@@ -18,7 +18,7 @@ import { PrismaPatientsRepository } from '../src/patients/patients.repository.js
 import { PatientsService } from '../src/patients/patients.service.js';
 
 // @nestjs/jwt registers this provider token at runtime, but its constants
-// subpath is not type-resolvable under this repo's Bun/NodeNext setup.
+// subpath is not type-resolvable under this repo's NodeNext setup.
 const JWT_MODULE_OPTIONS_TOKEN = 'JWT_MODULE_OPTIONS';
 
 describe('patients module DI', () => {

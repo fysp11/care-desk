@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 import { HttpStatus, RequestMethod } from '@nestjs/common';
 import {
   GUARDS_METADATA,

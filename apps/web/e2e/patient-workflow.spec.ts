@@ -76,7 +76,7 @@ test.describe('patient management browser smoke', () => {
   test.describe.configure({ mode: 'serial' });
 
   test.beforeEach(() => {
-    execFileSync('bun', ['--filter', '@care-desk/api', 'db:seed'], {
+    execFileSync('npm', ['run', 'db:seed', '--workspace', '@care-desk/api'], {
       cwd: repoRoot,
       stdio: 'ignore',
     });

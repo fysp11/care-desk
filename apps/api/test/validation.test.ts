@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import type { ArgumentMetadata } from "@nestjs/common";
 import { Type } from "class-transformer";
 import { IsString, Matches, ValidateNested } from "class-validator";

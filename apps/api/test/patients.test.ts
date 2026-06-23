@@ -5,7 +5,7 @@ import {
   describe,
   expect,
   test,
-} from 'bun:test';
+} from 'vitest';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import inject from 'light-my-request';

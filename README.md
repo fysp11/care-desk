@@ -21,29 +21,28 @@ See also:
 | Patient API | Protected list, details, create, update, and delete endpoints with search, sort, pagination, validation, and normalized errors. |
 | Frontend    | Next.js patient workflow with login, table, details, admin create/edit/delete, user view-only mode, loading/empty/error states. |
 | Validation  | Server DTO validation plus Zod 4 and React Hook Form validation for patient forms.                                              |
-| Reliability | Local opt-in latency/failure simulation, recoverable list/detail/form failures, optimistic delete rollback.                     |
+| Reliability | Recoverable list/detail/form failures, optimistic create/edit/delete behavior, and rollback for failed mutations.              |
 
 ## Prerequisites
 
-- Bun 1.3+
 - Node.js 20.19+
 
-The repository is configured for Bun workspaces.
+The repository is configured for npm workspaces and can be invoked through npm, pnpm, or bun script runners.
 
 ## Setup
 
 ```bash
-bun run up
+npm run up
 ```
 
-`bun run up` installs dependencies, starts PostgreSQL, applies migrations,
+`npm run up` installs dependencies, starts PostgreSQL, applies migrations,
 generates the Prisma client, seeds fictional demo data, and starts the API and
 web app through Docker Compose.
 
 Stop local services with:
 
 ```bash
-bun run down
+npm run down
 ```
 
 ## Run Locally
@@ -51,10 +50,10 @@ bun run down
 Start the local development stack:
 
 ```bash
-bun run dev
+npm run dev
 ```
 
-This runs the same bootstrap as `bun run up`, then follows API and web logs.
+This runs the same bootstrap as `npm run up`, then follows API and web logs.
 
 Service URLs:
 
@@ -65,9 +64,9 @@ Service URLs:
 Useful root commands:
 
 ```bash
-bun run migrate
-bun run seed
-bun run start
+npm run migrate
+npm run seed
+npm run start
 ```
 
 ## Demo Login Fixtures
@@ -85,28 +84,28 @@ credentials and are not read from secret files.
 Run the normal verification commands from the repo root:
 
 ```bash
-bun run typecheck
-bun run lint
-bun run test
-bun run test:e2e
-bun run build
+npm run typecheck
+npm run lint
+npm run test
+npm run test:e2e
+npm run build
 ```
 
-`bun run test`, `bun run test:e2e`, and `bun run up` require Docker Compose and
+`npm run test`, `npm run test:e2e`, and `npm run up` require Docker Compose and
 a reachable local PostgreSQL container. If stale Compose containers point at an
-old worktree, recreate them with `bun run down` and `bun run up` before rerunning
+old worktree, recreate them with `npm run down` and `npm run up` before rerunning
 browser checks.
 
 ## Verification Evidence
 
 | Evidence              | Result                                                                                           |
 | --------------------- | ------------------------------------------------------------------------------------------------ |
-| Workspace tests       | `bun run test` passes: shared scaffold, API integration/unit tests, and web unit tests.          |
+| Workspace tests       | `npm run test` passes: shared scaffold, API integration/unit tests, and web unit tests.          |
 | API focused tests     | 53 API tests pass across auth/RBAC, DTO, decorator style, module DI, repository, service, validation, and DB-backed patient API behavior. |
-| Typecheck             | `bun run typecheck` passes after Prisma client generation.                                      |
+| Typecheck             | `npm run typecheck` passes after Prisma client generation.                                      |
 | Web focused tests     | Web unit tests pass, including API client, workflow, schema, session, and reliability.           |
-| Browser e2e           | `bun run test:e2e` passes 9 Playwright tests for admin/user workflows.                          |
-| Production build      | `bun run build` passes for shared, API, and web.                                                 |
+| Browser e2e           | `npm run test:e2e` passes 9 Playwright tests for admin/user workflows.                          |
+| Production build      | `npm run build` passes for shared, API, and web.                                                 |
 
 ## Known Cuts
 

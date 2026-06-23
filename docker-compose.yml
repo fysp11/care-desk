@@ -17,9 +17,9 @@ services:
       retries: 10
 
   api:
-    image: oven/bun:1
+    image: node:22-alpine
     working_dir: /app
-    command: sh -c "bun install --frozen-lockfile && bun --filter @care-desk/api dev"
+    command: sh -c "npm install && npm run dev --workspace @care-desk/api"
     depends_on:
       postgres:
         condition: service_healthy
@@ -29,15 +29,15 @@ services:
       PORT: 3001
     volumes:
       - .:/app
-      - bun-cache:/tmp/bun-cache
+      - npm-cache:/root/.npm
     ports:
       - "3001:3001"
     restart: unless-stopped
 
   web:
-    image: oven/bun:1
+    image: node:22-alpine
     working_dir: /app
-    command: sh -c "bun install --frozen-lockfile && bun --filter @care-desk/web dev -- --hostname 0.0.0.0 --port 3000"
+    command: sh -c "npm install && npm run dev --workspace @care-desk/web -- --hostname 0.0.0.0 --port 3000"
     depends_on:
       api:
         condition: service_started
@@ -47,11 +47,11 @@ services:
       PORT: 3000
     volumes:
       - .:/app
-      - bun-cache:/tmp/bun-cache
+      - npm-cache:/root/.npm
     ports:
       - "3000:3000"
     restart: unless-stopped
 
 volumes:
   postgres_data:
-  bun-cache:
+  npm-cache:

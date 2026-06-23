@@ -14,5 +14,8 @@ export interface PatientsRepository {
   create(input: PatientWriteInput): Promise<Patient>;
   update(id: string, input: PatientWriteInput): Promise<Patient | undefined>;
   delete(id: string): Promise<boolean>;
+}
+
+export interface ResettablePatientsRepository {
   reset(): Promise<void>;
 }

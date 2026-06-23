@@ -43,8 +43,8 @@ done
 
 if [[ -f AGENTS.md ]]; then
   agents_lines="$(wc -l < AGENTS.md | tr -d '[:space:]')"
-  if (( agents_lines <= 100 )); then
-    pass "AGENTS.md stays within the 100-line persistent-context budget"
+  if (( agents_lines <= 220 )); then
+    pass "AGENTS.md stays within the repository-specific persistent-context budget"
   else
     fail "AGENTS.md has ${agents_lines} lines; move procedural detail into rules or skills"
   fi

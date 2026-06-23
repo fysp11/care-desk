@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { useAuthSession } from '../../hooks/use-auth-session';
+import { useAuthSessionContext } from './auth-session-context';
 import { LoginPanel } from '../login-panel';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -12,7 +12,7 @@ export function LoginPageClient({
 }: {
   readonly initialNotice: string | null;
 }) {
-  const auth = useAuthSession();
+  const auth = useAuthSessionContext();
   const router = useRouter();
 
   useEffect(() => {

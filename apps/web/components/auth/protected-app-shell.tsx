@@ -3,8 +3,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { useAuthSession } from '../../hooks/use-auth-session';
-import { AuthSessionProvider } from './auth-session-context';
+import { useAuthSessionContext } from './auth-session-context';
 import { Card, CardContent } from '@/components/ui/card';
 
 const loginPathForNotice = (notice: string | null): string => {
@@ -24,7 +23,7 @@ export function ProtectedAppShell({
 }: {
   readonly children: ReactNode;
 }) {
-  const auth = useAuthSession();
+  const auth = useAuthSessionContext();
   const router = useRouter();
 
   useEffect(() => {
@@ -45,5 +44,5 @@ export function ProtectedAppShell({
     );
   }
 
-  return <AuthSessionProvider value={auth}>{children}</AuthSessionProvider>;
+  return children;
 }

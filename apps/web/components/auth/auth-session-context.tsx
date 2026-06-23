@@ -14,13 +14,13 @@ const AuthSessionContext = createContext<AuthSessionContextValue | null>(null);
 
 export function AuthSessionProvider({
   children,
-  value,
 }: {
   readonly children: ReactNode;
-  readonly value: AuthSessionContextValue;
 }) {
+  const auth = useAuthSession();
+
   return (
-    <AuthSessionContext.Provider value={value}>
+    <AuthSessionContext.Provider value={auth}>
       {children}
     </AuthSessionContext.Provider>
   );
@@ -30,7 +30,9 @@ export function useAuthSessionContext(): AuthSessionContextValue {
   const value = useContext(AuthSessionContext);
 
   if (!value) {
-    throw new Error('useAuthSessionContext must be used inside AppLayout.');
+    throw new Error(
+      'useAuthSessionContext must be used inside AuthSessionProvider.',
+    );
   }
 
   return value;

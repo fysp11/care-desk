@@ -1,6 +1,5 @@
 'use client';
 
-import { FailureSimulationPanel } from '../failure-simulation-panel';
 import { PatientAppHeader } from '../patient-app-header';
 import { PatientDetails } from '../patient-details';
 import { PatientForm } from '../patient-form';
@@ -9,7 +8,6 @@ import { PatientPagination } from '../patient-pagination';
 import { PatientTable } from '../patient-table';
 import { StatusMessage } from '../status-message';
 import { useAuthSessionContext } from '../auth/auth-session-context';
-import { useFailureSimulationSettings } from '../../hooks/use-failure-simulation-settings';
 import { usePatientWorkflow } from '../../hooks/use-patient-workflow';
 import {
   shouldShowDetailRetry,
@@ -21,12 +19,9 @@ import { Card, CardContent } from '@/components/ui/card';
 export function PatientsWorkspace() {
   const auth = useAuthSessionContext();
   const session = auth.session;
-  const failureSimulation = useFailureSimulationSettings();
   const patients = usePatientWorkflow({
     onAuthFailure: auth.handleAuthFailure,
     session,
-    simulationReady: failureSimulation.ready,
-    simulationSettings: failureSimulation.settings,
   });
   const canRetryDetails = shouldShowDetailRetry(
     patients.detailsStatus,
@@ -48,13 +43,6 @@ export function PatientsWorkspace() {
             and delete controls are hidden. The API still enforces this with
             server-side authorization.
           </StatusMessage>
-        ) : null}
-
-        {failureSimulation.available ? (
-          <FailureSimulationPanel
-            onChange={failureSimulation.updateSettings}
-            settings={failureSimulation.settings}
-          />
         ) : null}
 
         <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_390px]">

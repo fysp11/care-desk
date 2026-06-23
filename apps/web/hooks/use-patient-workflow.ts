@@ -11,8 +11,6 @@ import {
   updatePatient,
 } from '../lib/api';
 import { toErrorMessage } from '../lib/api-error-message';
-import type { FailureSimulationSettings } from '../lib/failure-simulation';
-import { withFailureSimulation } from '../lib/failure-simulation';
 import type { StoredSession } from '../lib/session';
 import type {
   Patient,
@@ -45,15 +43,11 @@ type FormMode = 'create' | 'edit';
 interface UsePatientWorkflowOptions {
   readonly onAuthFailure: () => void;
   readonly session: StoredSession | null;
-  readonly simulationReady: boolean;
-  readonly simulationSettings: FailureSimulationSettings;
 }
 
 export function usePatientWorkflow({
   onAuthFailure,
   session,
-  simulationReady,
-  simulationSettings,
 }: UsePatientWorkflowOptions) {
   const [query, setQuery] = useState<PatientListQuery>(defaultQuery);
   const [patients, setPatients] = useState<readonly Patient[]>([]);
@@ -97,7 +91,7 @@ export function usePatientWorkflow({
   }, [resetPatientState, session]);
 
   const refreshPatients = useCallback(async () => {
-    if (!session || !simulationReady) {
+    if (!session) {
       return;
     }
 
@@ -106,15 +100,10 @@ export function usePatientWorkflow({
     setMutationError(null);
 
     try {
-      const response = await withFailureSimulation(
-        'list',
-        simulationSettings,
-        () =>
-          listPatients(query, {
-            onAuthFailure: handleAuthFailure,
-            token: session.token,
-          }),
-      );
+      const response = await listPatients(query, {
+        onAuthFailure: handleAuthFailure,
+        token: session.token,
+      });
 
       setPatients(response.data);
       setTotalPatients(response.total);
@@ -127,7 +116,7 @@ export function usePatientWorkflow({
       setListError(toErrorMessage(error));
       setListStatus('error');
     }
-  }, [handleAuthFailure, query, session, simulationReady, simulationSettings]);
+  }, [handleAuthFailure, query, session]);
 
   useEffect(() => {
     void refreshPatients();
@@ -150,15 +139,10 @@ export function usePatientWorkflow({
       setDetailsError(null);
 
       try {
-        const freshPatient = await withFailureSimulation(
-          'detail',
-          simulationSettings,
-          () =>
-            getPatient(patient.id, {
-              onAuthFailure: handleAuthFailure,
-              token: session.token,
-            }),
-        );
+        const freshPatient = await getPatient(patient.id, {
+          onAuthFailure: handleAuthFailure,
+          token: session.token,
+        });
 
         setSelectedPatient(freshPatient);
         setDetailsStatus('success');
@@ -171,7 +155,7 @@ export function usePatientWorkflow({
         setDetailsStatus('error');
       }
     },
-    [handleAuthFailure, session, simulationSettings],
+    [handleAuthFailure, session],
   );
 
   const handleSort = useCallback((field: PatientListQuery['sortBy']) => {
@@ -255,18 +239,14 @@ export function usePatientWorkflow({
       try {
         savedPatient =
           formMode === 'create'
-            ? await withFailureSimulation('create', simulationSettings, () =>
-                createPatient(payload, {
-                  onAuthFailure: handleAuthFailure,
-                  token: session.token,
-                }),
-              )
-            : await withFailureSimulation('edit', simulationSettings, () =>
-                updatePatient(editingPatient?.id ?? '', payload, {
-                  onAuthFailure: handleAuthFailure,
-                  token: session.token,
-                }),
-              );
+            ? await createPatient(payload, {
+                onAuthFailure: handleAuthFailure,
+                token: session.token,
+              })
+            : await updatePatient(editingPatient?.id ?? '', payload, {
+                onAuthFailure: handleAuthFailure,
+                token: session.token,
+              });
       } catch (error) {
         if (error instanceof ApiAuthError) {
           return;
@@ -309,7 +289,6 @@ export function usePatientWorkflow({
       refreshPatients,
       selectedPatient,
       session,
-      simulationSettings,
       totalPatients,
     ],
   );
@@ -350,12 +329,10 @@ export function usePatientWorkflow({
       }
 
       try {
-        await withFailureSimulation('delete', simulationSettings, () =>
-          deletePatient(patient.id, {
-            onAuthFailure: handleAuthFailure,
-            token: session.token,
-          }),
-        );
+        await deletePatient(patient.id, {
+          onAuthFailure: handleAuthFailure,
+          token: session.token,
+        });
 
         await refreshPatients();
       } catch (error) {
@@ -379,7 +356,6 @@ export function usePatientWorkflow({
       refreshPatients,
       selectedPatient,
       session,
-      simulationSettings,
       totalPatients,
     ],
   );

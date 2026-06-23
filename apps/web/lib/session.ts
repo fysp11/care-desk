@@ -17,6 +17,21 @@ interface ReadSessionOptions {
   readonly nowSeconds?: number;
 }
 
+declare global {
+  var __careDeskVolatileSession: StoredSession | null | undefined;
+}
+
+const getVolatileSession = (): StoredSession | null =>
+  globalThis.__careDeskVolatileSession ?? null;
+
+const setVolatileSession = (session: StoredSession): void => {
+  globalThis.__careDeskVolatileSession = session;
+};
+
+const clearVolatileSession = (): void => {
+  globalThis.__careDeskVolatileSession = null;
+};
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 
@@ -75,7 +90,15 @@ export const getJwtExpirySeconds = (token: string): number | null => {
   return parsed.exp;
 };
 
-export const clearStoredSession = (storage: SessionStorageLike): void => {
+export const clearStoredSession = (
+  storage: SessionStorageLike | null,
+): void => {
+  clearVolatileSession();
+
+  if (!storage) {
+    return;
+  }
+
   try {
     storage.removeItem(SESSION_STORAGE_KEY);
   } catch {
@@ -84,9 +107,15 @@ export const clearStoredSession = (storage: SessionStorageLike): void => {
 };
 
 export const saveStoredSession = (
-  storage: SessionStorageLike,
+  storage: SessionStorageLike | null,
   session: StoredSession,
 ): void => {
+  setVolatileSession(session);
+
+  if (!storage) {
+    return;
+  }
+
   try {
     storage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
   } catch {
@@ -95,19 +124,43 @@ export const saveStoredSession = (
 };
 
 export const readStoredSession = (
-  storage: SessionStorageLike,
+  storage: SessionStorageLike | null,
   options: ReadSessionOptions = {},
 ): StoredSession | null => {
+  const readVolatileSession = (): StoredSession | null => {
+    const session = getVolatileSession();
+
+    if (!session) {
+      return null;
+    }
+
+    const nowSeconds =
+      options.nowSeconds ?? Math.floor(globalThis.Date.now() / 1000);
+    const exp = getJwtExpirySeconds(session.token);
+
+    if (exp === null || exp <= nowSeconds) {
+      clearVolatileSession();
+
+      return null;
+    }
+
+    return session;
+  };
+
+  if (!storage) {
+    return readVolatileSession();
+  }
+
   let storedValue: string | null;
 
   try {
     storedValue = storage.getItem(SESSION_STORAGE_KEY);
   } catch {
-    return null;
+    return readVolatileSession();
   }
 
   if (storedValue === null) {
-    return null;
+    return readVolatileSession();
   }
 
   let parsedValue: unknown;

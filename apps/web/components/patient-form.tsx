@@ -18,6 +18,16 @@ import {
   type PatientFormValues,
 } from '../lib/patient-schema';
 import type { Patient, PatientWriteInput } from '../lib/types';
+import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
 
 interface PatientFormProps {
   readonly isSubmitting: boolean;
@@ -89,24 +99,21 @@ export function PatientForm({
   const title = mode === 'create' ? 'Create patient' : 'Edit patient';
 
   return (
-    <form className="space-y-4" noValidate onSubmit={submit}>
-      <div>
-        <h2 className="text-lg font-semibold text-slate-950">{title}</h2>
-        <p className="mt-1 text-sm text-slate-600">
+    <form className="flex flex-col gap-4" noValidate onSubmit={submit}>
+      <div className="flex flex-col gap-1">
+        <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+        <p className="text-sm text-muted-foreground">
           All fields are required and validated before submission.
         </p>
       </div>
 
       {serverError ? (
-        <div
-          className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900"
-          role="alert"
-        >
+        <Alert role="alert" variant="destructive">
           {serverError}
-        </div>
+        </Alert>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <FieldGroup className="sm:grid sm:grid-cols-2">
         <FormField
           autoComplete="given-name"
           error={errors.firstName?.message}
@@ -119,7 +126,7 @@ export function PatientForm({
           label="Last name"
           registration={register('lastName')}
         />
-      </div>
+      </FieldGroup>
 
       <FormField
         autoComplete="email"
@@ -129,7 +136,7 @@ export function PatientForm({
         type="email"
       />
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <FieldGroup className="sm:grid sm:grid-cols-2">
         <FormField
           autoComplete="tel"
           error={errors.phoneNumber?.message}
@@ -144,24 +151,23 @@ export function PatientForm({
           placeholder="YYYY-MM-DD"
           registration={register('dob')}
         />
-      </div>
+      </FieldGroup>
 
-      <div className="flex flex-col-reverse gap-2 border-t border-slate-200 pt-4 sm:flex-row sm:justify-end">
-        <button
-          className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+      <div className="flex flex-col-reverse gap-2 border-t border-border pt-4 sm:flex-row sm:justify-end">
+        <Button
           disabled={isSubmitting}
           onClick={onCancel}
           type="button"
+          variant="outline"
         >
           Cancel
-        </button>
-        <button
-          className="rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-400"
+        </Button>
+        <Button
           disabled={isSubmitting || (!isDirty && mode === 'edit')}
           type="submit"
         >
           {isSubmitting ? 'Saving...' : mode === 'create' ? 'Create' : 'Save'}
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -189,24 +195,25 @@ function FormField({
   const id = registration.name;
 
   return (
-    <label className="block text-sm font-medium text-slate-800" htmlFor={id}>
-      {label}
-      <input
+    <Field data-invalid={error ? true : undefined}>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <Input
         {...registration}
         aria-invalid={error ? 'true' : 'false'}
         aria-describedby={error ? `${id}-error` : undefined}
         autoComplete={autoComplete}
-        className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm transition placeholder:text-slate-400 hover:border-slate-400 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 disabled:cursor-not-allowed disabled:bg-slate-100"
         id={id}
         inputMode={inputMode}
         placeholder={placeholder}
         type={type}
       />
       {error ? (
-        <span className="mt-1 block text-xs font-medium text-red-700" id={`${id}-error`}>
+        <FieldError id={`${id}-error`}>
           {error}
-        </span>
+        </FieldError>
+      ) : placeholder ? (
+        <FieldDescription>{placeholder}</FieldDescription>
       ) : null}
-    </label>
+    </Field>
   );
 }

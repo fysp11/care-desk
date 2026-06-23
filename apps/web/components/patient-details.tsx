@@ -2,6 +2,8 @@
 
 import { StatusMessage } from './status-message';
 import type { Patient } from '../lib/types';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 interface PatientDetailsProps {
   readonly error: string | null;
@@ -20,12 +22,12 @@ export function PatientDetails({
 }: PatientDetailsProps) {
   if (error) {
     return (
-      <div className="space-y-4">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-950">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-lg font-semibold text-foreground">
             {patient.firstName} {patient.lastName}
           </h2>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="text-sm text-muted-foreground">
             Last selected row is still available.
           </p>
         </div>
@@ -33,13 +35,13 @@ export function PatientDetails({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <span>{error}</span>
             {showRetry ? (
-              <button
-                className="rounded-md border border-red-300 bg-white px-3 py-2 text-sm font-semibold text-red-800 transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              <Button
                 onClick={onRetry}
                 type="button"
+                variant="outline"
               >
                 Retry details
-              </button>
+              </Button>
             ) : null}
           </div>
         </StatusMessage>
@@ -48,12 +50,12 @@ export function PatientDetails({
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold text-slate-950">
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-lg font-semibold text-foreground">
           {patient.firstName} {patient.lastName}
         </h2>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="text-sm text-muted-foreground">
           {isLoading ? 'Refreshing record...' : 'Patient record'}
         </p>
       </div>
@@ -78,11 +80,11 @@ function DetailItem({
   readonly value: string;
 }) {
   return (
-    <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
-      <dt className="text-xs font-semibold uppercase text-slate-500">
+    <Card className="bg-muted/50 px-3 py-2">
+      <dt className="text-xs font-semibold uppercase text-muted-foreground">
         {label}
       </dt>
-      <dd className="mt-1 break-words font-medium text-slate-900">{value}</dd>
-    </div>
+      <dd className="mt-1 break-words font-medium text-foreground">{value}</dd>
+    </Card>
   );
 }

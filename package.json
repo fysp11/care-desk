@@ -12,12 +12,12 @@
     "packages/*"
   ],
   "scripts": {
-    "up": "bun install --frozen-lockfile && bun run migrate && bun run seed && docker compose up -d --wait api web",
+    "up": "bun install --frozen-lockfile && bun run migrate && bun run seed && bun run start",
     "down": "docker compose down",
     "migrate": "docker compose up -d --wait postgres && bun --filter @care-desk/api db:migrate:deploy && bun --filter @care-desk/api db:generate",
     "seed": "docker compose up -d --wait postgres && bun --filter @care-desk/api db:seed",
     "dev": "bun run up && docker compose logs -f api web",
-    "start": "bun run up",
+    "start": "docker compose up -d --wait api web",
     "build": "bun --filter @care-desk/shared build && bun --filter @care-desk/api build && bun --filter @care-desk/web build",
     "lint": "bun run typecheck",
     "test": "bun --filter @care-desk/shared test && bun --filter @care-desk/api test && bun --filter @care-desk/web test",

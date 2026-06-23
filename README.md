@@ -102,7 +102,7 @@ browser checks.
 | Evidence              | Result                                                                                           |
 | --------------------- | ------------------------------------------------------------------------------------------------ |
 | Workspace tests       | `bun run test` passes: shared scaffold, API integration/unit tests, and web unit tests.          |
-| API focused tests     | 54 API tests pass across auth/RBAC, DTO, decorator style, module DI, repository, service, validation, and DB-backed patient API behavior. |
+| API focused tests     | 53 API tests pass across auth/RBAC, DTO, decorator style, module DI, repository, service, validation, and DB-backed patient API behavior. |
 | Typecheck             | `bun run typecheck` passes after Prisma client generation.                                      |
 | Web focused tests     | Web unit tests pass, including API client, workflow, schema, session, and reliability.           |
 | Browser e2e           | `bun run test:e2e` passes 9 Playwright tests for admin/user workflows.                          |

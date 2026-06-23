@@ -11,10 +11,27 @@ import {
   type FailureSimulationSettings,
 } from '../lib/failure-simulation';
 
+const canUseLocalFailureSimulation = (): boolean =>
+  typeof window !== 'undefined' &&
+  isLocalFailureSimulationHost(window.location.hostname);
+
+const readInitialFailureSimulationSettings = (): FailureSimulationSettings => {
+  if (!canUseLocalFailureSimulation()) {
+    return defaultFailureSimulationSettings;
+  }
+
+  const browserStorage = getBrowserStorage();
+
+  return browserStorage
+    ? readFailureSimulationSettings(browserStorage)
+    : defaultFailureSimulationSettings;
+};
+
 export function useFailureSimulationSettings() {
-  const [available, setAvailable] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [available, setAvailable] = useState(canUseLocalFailureSimulation);
   const [settings, setSettings] = useState<FailureSimulationSettings>(
-    defaultFailureSimulationSettings,
+    readInitialFailureSimulationSettings,
   );
 
   useEffect(() => {
@@ -28,6 +45,8 @@ export function useFailureSimulationSettings() {
     if (canUseSimulation && browserStorage) {
       setSettings(readFailureSimulationSettings(browserStorage));
     }
+
+    setReady(true);
   }, []);
 
   const updateSettings = useCallback(
@@ -44,6 +63,7 @@ export function useFailureSimulationSettings() {
 
   return {
     available,
+    ready,
     settings,
     updateSettings,
   };

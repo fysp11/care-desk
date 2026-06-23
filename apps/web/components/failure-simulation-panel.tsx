@@ -5,6 +5,8 @@ import {
   type FailureSimulationSettings,
   type FailureSimulationTargetSelection,
 } from '../lib/failure-simulation';
+import { Alert } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 
 interface FailureSimulationPanelProps {
   readonly onChange: (settings: FailureSimulationSettings) => void;
@@ -23,27 +25,27 @@ export function FailureSimulationPanel({
   };
 
   return (
-    <section className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 shadow-sm">
+    <Alert className="text-foreground" variant="warning">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <label className="inline-flex items-center gap-2 font-semibold">
           <input
             checked={settings.enabled}
-            className="h-4 w-4 rounded border-amber-300 text-amber-700 focus:ring-amber-500"
+            className="size-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
             onChange={(event) => update({ enabled: event.target.checked })}
             type="checkbox"
           />
           Local reliability simulation
         </label>
-        <span className="rounded bg-white/70 px-2 py-1 text-xs font-semibold uppercase text-amber-900">
+        <Badge variant="secondary">
           {settings.enabled ? 'On' : 'Off'}
-        </span>
+        </Badge>
       </div>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_160px]">
         <label className="block font-medium" htmlFor="simulation-target">
           Fail target
           <select
-            className="mt-1 block w-full rounded-md border border-amber-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm transition focus:border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-xs transition focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
             disabled={!settings.enabled}
             id="simulation-target"
             onChange={(event) =>
@@ -65,7 +67,7 @@ export function FailureSimulationPanel({
         <label className="block font-medium" htmlFor="simulation-latency">
           Latency
           <select
-            className="mt-1 block w-full rounded-md border border-amber-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm transition focus:border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-xs transition focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
             disabled={!settings.enabled}
             id="simulation-latency"
             onChange={(event) =>
@@ -80,6 +82,6 @@ export function FailureSimulationPanel({
           </select>
         </label>
       </div>
-    </section>
+    </Alert>
   );
 }

@@ -246,6 +246,51 @@ describe('browser session storage', () => {
     expect(() => clearStoredSession(storage)).not.toThrow();
   });
 
+  test('keeps a best-effort in-memory session when storage writes are denied', () => {
+    const storage = new ThrowingStorage();
+    const session = {
+      token: tokenWithExpiry(1_800_000_000),
+      user: {
+        email: 'admin@example.com',
+        role: 'admin' as const,
+      },
+    };
+
+    saveStoredSession(storage, session);
+
+    expect(readStoredSession(storage, { nowSeconds: 1_700_000_000 })).toEqual(
+      session,
+    );
+
+    clearStoredSession(storage);
+
+    expect(
+      readStoredSession(storage, { nowSeconds: 1_700_000_000 }),
+    ).toBeNull();
+  });
+
+  test('keeps a best-effort in-memory session when storage is unavailable', () => {
+    const session = {
+      token: tokenWithExpiry(1_800_000_000),
+      user: {
+        email: 'admin@example.com',
+        role: 'admin' as const,
+      },
+    };
+
+    saveStoredSession(null, session);
+
+    expect(readStoredSession(null, { nowSeconds: 1_700_000_000 })).toEqual(
+      session,
+    );
+
+    clearStoredSession(null);
+
+    expect(
+      readStoredSession(null, { nowSeconds: 1_700_000_000 }),
+    ).toBeNull();
+  });
+
   test('does not clear storage when session reads are denied', () => {
     const storage = new GetDeniedStorage();
 

@@ -40,6 +40,6 @@ export const createValidationPipe = (): ValidationPipe =>
       }),
     forbidNonWhitelisted: true,
     forbidUnknownValues: true,
-    transform: false,
+    transform: true,
     whitelist: true,
   });

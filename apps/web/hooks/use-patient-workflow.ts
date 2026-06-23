@@ -45,12 +45,14 @@ type FormMode = 'create' | 'edit';
 interface UsePatientWorkflowOptions {
   readonly onAuthFailure: () => void;
   readonly session: StoredSession | null;
+  readonly simulationReady: boolean;
   readonly simulationSettings: FailureSimulationSettings;
 }
 
 export function usePatientWorkflow({
   onAuthFailure,
   session,
+  simulationReady,
   simulationSettings,
 }: UsePatientWorkflowOptions) {
   const [query, setQuery] = useState<PatientListQuery>(defaultQuery);
@@ -95,7 +97,7 @@ export function usePatientWorkflow({
   }, [resetPatientState, session]);
 
   const refreshPatients = useCallback(async () => {
-    if (!session) {
+    if (!session || !simulationReady) {
       return;
     }
 
@@ -125,7 +127,7 @@ export function usePatientWorkflow({
       setListError(toErrorMessage(error));
       setListStatus('error');
     }
-  }, [handleAuthFailure, query, session, simulationSettings]);
+  }, [handleAuthFailure, query, session, simulationReady, simulationSettings]);
 
   useEffect(() => {
     void refreshPatients();

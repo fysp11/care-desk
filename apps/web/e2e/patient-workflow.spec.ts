@@ -126,33 +126,31 @@ test.describe('patient management browser smoke', () => {
     const lastName = `Smoke${runId}`;
 
     await page.getByRole('button', { name: 'New patient' }).click();
-    const createForm = page.locator('aside form');
-    await createForm.getByLabel('First name', { exact: true }).fill('Browser');
-    await createForm.getByLabel('Last name', { exact: true }).fill(lastName);
-    await createForm.getByLabel('Email', { exact: true }).fill(email);
-    await createForm.getByLabel('Phone number').fill('+1 555 0999');
-    await createForm.getByLabel('Date of birth').fill('1990-01-15');
+    await page.getByLabel('First name', { exact: true }).fill('Browser');
+    await page.getByLabel('Last name', { exact: true }).fill(lastName);
+    await page.getByLabel('Email', { exact: true }).fill(email);
+    await page.getByLabel('Phone number').fill('+1 555 0999');
+    await page.getByLabel('Date of birth').fill('1990-01-15');
     await page.getByRole('button', { name: 'Create', exact: true }).click();
 
-    await expect(page.getByText(email)).toBeVisible();
+    const createdRow = page.getByRole('row').filter({ hasText: email });
+    await expect(createdRow).toBeVisible();
     await expect(
       page.getByRole('heading', { name: `Browser ${lastName}` }),
     ).toBeVisible();
 
-    const createdRow = page.getByRole('row').filter({ hasText: email });
     await createdRow.getByRole('button', { name: 'Edit' }).click();
-    const editForm = page.locator('aside form');
-    await editForm
-      .getByLabel('First name', { exact: true })
-      .fill('Browser Edited');
+    await page.getByLabel('First name', { exact: true }).fill('Browser Edited');
     await page.getByRole('button', { name: 'Save' }).click();
 
-    await expect(page.getByText('Browser Edited')).toBeVisible();
+    const editedRow = page.getByRole('row').filter({ hasText: email });
+    await expect(
+      editedRow.getByRole('cell', { name: 'Browser Edited' }),
+    ).toBeVisible();
     await expect(
       page.getByRole('heading', { name: `Browser Edited ${lastName}` }),
     ).toBeVisible();
 
-    const editedRow = page.getByRole('row').filter({ hasText: email });
     page.once('dialog', (dialog) => dialog.accept());
     await editedRow.getByRole('button', { name: 'Delete' }).click();
 

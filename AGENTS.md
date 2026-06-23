@@ -67,6 +67,40 @@ subagents for context management:
   host-specific absolute paths to reusable docs or code.
 - Prefer concise documentation and clear cuts over broad unfinished features.
 
+## Architecture invariants
+
+- Assign every behavior to one primary architectural responsibility.
+- Do not mix presentation, transport, application orchestration, domain logic,
+  persistence, and external integrations in the same module.
+- Domain code must not import UI frameworks, HTTP frameworks, databases,
+  persistence clients, or external-service SDKs.
+- UI code must not implement domain policy or access persistence directly.
+- Routes, controllers, resolvers, and server actions validate/adapt transport
+  input, delegate execution, and translate results.
+- Application use cases orchestrate workflows; infrastructure implements
+  persistence and external-integration boundaries.
+- Dependencies must point toward stable domain and application abstractions.
+- Preserve public behavior and contracts unless the task explicitly changes them.
+
+## Refactoring invariants
+
+- Do not split files solely to reduce line count.
+- Every extraction must create cohesive ownership and a meaningful API.
+- Do not introduce speculative abstractions or unnecessary architectural layers.
+- Add characterization tests before modifying insufficiently protected behavior.
+- Refactor incrementally in independently verifiable batches.
+- Do not combine broad architectural refactoring with unrelated feature changes.
+
+## Architecture routing
+
+Invoke the `architecture` skill for oversized or high-complexity modules, mixed
+responsibilities, misplaced frontend/backend/domain/persistence logic, invalid
+dependencies, duplicated business rules, helper dumping grounds, repository-wide
+refactoring, architectural planning, or architectural review.
+
+The architecture skill must select exactly one initial mode: audit, plan,
+refactor, verify, or review.
+
 ## Verification
 
 Run the smallest relevant check first:
@@ -74,6 +108,12 @@ Run the smallest relevant check first:
 - `bun test`
 - `bun run typecheck`
 - targeted API/UI tests once they exist
+
+Before declaring production-code work complete, also run linting, production
+builds, dependency checks, and architecture checks when available. Report checks
+that were unavailable or could not be executed. Do not claim that rules were
+enforced merely because they were written here; prefer deterministic repository
+checks whenever a rule can be automated.
 
 If a check cannot run, state why and document the residual risk.
 

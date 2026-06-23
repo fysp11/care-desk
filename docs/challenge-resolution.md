@@ -17,7 +17,7 @@ show senior judgment by shipping the trust boundary and documenting the cuts.
 | RBAC | `admin` can mutate patients; `user` can view only; backend guards enforce access | Fine-grained permissions, multi-tenant policy |
 | Patients | List, search, sort, pagination, details, create, edit, delete | Bulk actions, imports, advanced filters |
 | UI | Responsive admin console with loading, empty, error, and role-gated action states | Dark mode, advanced animations, brand-heavy polish |
-| Reliability | DTO validation, normalized API errors, optimistic edit/delete rollback, simulated latency/failure | Full observability stack, retry orchestration, rate limiting |
+| Reliability | DTO validation, normalized API errors, recoverable failure states, optimistic mutation rollback | Full observability stack, retry orchestration, rate limiting |
 | Tests | API integration tests for auth/RBAC/validation plus focused UI smoke tests | Broad mutation testing, exhaustive browser matrix |
 
 ## Architecture
@@ -154,7 +154,7 @@ Prioritize tests that defend the trust boundary.
 | Invalid patient body returns `400` with details | Proves server validation |
 | `GET /patients` supports pagination/search/sort | Proves contract used by UI |
 | UI hides admin actions for `user` role | Proves role-aware UX, not security |
-| Optimistic edit/delete rolls back on simulated failure | Proves failure UX |
+| Optimistic edit/delete rolls back on failed API calls | Proves failure UX |
 
 ## Implementation Order
 
@@ -166,8 +166,7 @@ Prioritize tests that defend the trust boundary.
 5. Build patient API endpoints and integration tests for RBAC and validation.
 6. Build login, protected routes, patients table, form, details view, and
    role-gated actions.
-7. Add simulated latency/failure behind a dev-only flag and wire rollback
-   behavior.
+7. Exercise failed API calls in tests and wire rollback behavior.
 8. Reserve the final pass for checks, README instructions, and cut
    documentation.
 

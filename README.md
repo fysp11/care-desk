@@ -32,17 +32,19 @@ The repository is configured for npm workspaces and can be invoked through npm, 
 ## Setup
 
 ```bash
+npm install
 npm run up
 ```
 
-`npm run up` installs dependencies, starts PostgreSQL, applies migrations,
-generates the Prisma client, seeds fictional demo data, and starts the API and
-web app through Docker Compose.
+After dependencies are installed, `npm run up` starts PostgreSQL, applies
+migrations, generates the Prisma client, seeds fictional demo data, and starts
+the API and web app through Docker Compose.
 
 Stop local services with:
 
 ```bash
 npm run down
+npm run restart
 ```
 
 ## Run Locally

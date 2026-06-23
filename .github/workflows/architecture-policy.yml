@@ -20,22 +20,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up Bun
-        if: ${{ hashFiles('package.json') != '' }}
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.0
-
-      - name: Install dependencies
-        if: ${{ hashFiles('package.json') != '' }}
+      - name: Run architecture policy checks
         shell: bash
-        run: |
-          if [[ -f bun.lock || -f bun.lockb ]]; then
-            bun install --frozen-lockfile
-          else
-            bun install
-          fi
-
-      - name: Run policy and repository checks
-        shell: bash
-        run: bash .agents/scripts/run-repository-checks.sh
+        run: bash .agents/scripts/check-architecture-policy.sh

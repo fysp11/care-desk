@@ -1,0 +1,41 @@
+name: Architecture policy
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: architecture-policy-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        if: ${{ hashFiles('package.json') != '' }}
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.0
+
+      - name: Install dependencies
+        if: ${{ hashFiles('package.json') != '' }}
+        shell: bash
+        run: |
+          if [[ -f bun.lock || -f bun.lockb ]]; then
+            bun install --frozen-lockfile
+          else
+            bun install
+          fi
+
+      - name: Run policy and repository checks
+        shell: bash
+        run: bash .agents/scripts/run-repository-checks.sh

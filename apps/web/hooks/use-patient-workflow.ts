@@ -1,44 +1,28 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import {
   ApiAuthError,
   createPatient,
   deletePatient,
-  getPatient,
-  listPatients,
   updatePatient,
 } from '../lib/api';
 import { toErrorMessage } from '../lib/api-error-message';
 import type { StoredSession } from '../lib/session';
-import type {
-  Patient,
-  PatientListQuery,
-  PatientWriteInput,
-} from '../lib/types';
+import type { Patient, PatientWriteInput } from '../lib/types';
 import {
   addPatientToCurrentPage,
   canMutatePatients,
   createOptimisticPatient,
   getOptimisticDeleteTotal,
-  getTotalPages,
-  nextSortQuery,
   removePatientById,
   replacePatientById,
   replacePatientByIdOrAddToCurrentPage,
-  type LoadStatus,
 } from '../lib/workflow';
-
-const defaultQuery: PatientListQuery = {
-  limit: 10,
-  page: 1,
-  search: '',
-  sortBy: 'lastName',
-  sortDir: 'asc',
-};
-
-type FormMode = 'create' | 'edit';
+import { usePatientDetailsState } from './use-patient-details-state';
+import { usePatientFormState } from './use-patient-form-state';
+import { usePatientListState } from './use-patient-list-state';
 
 interface UsePatientWorkflowOptions {
   readonly onAuthFailure: () => void;
@@ -49,40 +33,39 @@ export function usePatientWorkflow({
   onAuthFailure,
   session,
 }: UsePatientWorkflowOptions) {
-  const [query, setQuery] = useState<PatientListQuery>(defaultQuery);
-  const [patients, setPatients] = useState<readonly Patient[]>([]);
-  const [totalPatients, setTotalPatients] = useState(0);
-  const [listStatus, setListStatus] = useState<LoadStatus>('idle');
-  const [listError, setListError] = useState<string | null>(null);
-  const [mutationError, setMutationError] = useState<string | null>(null);
+  const resetPatientStateRef = useRef<() => void>(() => {});
+  const handleAuthFailure = useCallback(() => {
+    resetPatientStateRef.current();
+    onAuthFailure();
+  }, [onAuthFailure]);
 
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-  const [detailsStatus, setDetailsStatus] = useState<LoadStatus>('idle');
-  const [detailsError, setDetailsError] = useState<string | null>(null);
-
-  const [formMode, setFormMode] = useState<FormMode | null>(null);
-  const [editingPatient, setEditingPatient] = useState<Patient | undefined>();
-  const [formError, setFormError] = useState<string | undefined>();
-  const [isSaving, setIsSaving] = useState(false);
+  const patientList = usePatientListState({
+    onAuthFailure: handleAuthFailure,
+    session,
+  });
+  const patientForm = usePatientFormState();
+  const closeFormForDetails = useCallback(() => {
+    patientForm.setFormMode(null);
+  }, [patientForm.setFormMode]);
+  const patientDetails = usePatientDetailsState({
+    onAuthFailure: handleAuthFailure,
+    onOpenDetails: closeFormForDetails,
+    session,
+  });
 
   const resetPatientState = useCallback(() => {
-    setPatients([]);
-    setTotalPatients(0);
-    setListStatus('idle');
-    setListError(null);
-    setMutationError(null);
-    setSelectedPatient(null);
-    setDetailsStatus('idle');
-    setDetailsError(null);
-    setFormMode(null);
-    setEditingPatient(undefined);
-    setFormError(undefined);
-  }, []);
+    patientList.resetListState();
+    patientDetails.resetDetailsState();
+    patientForm.resetFormState();
+  }, [
+    patientDetails.resetDetailsState,
+    patientForm.resetFormState,
+    patientList.resetListState,
+  ]);
 
-  const handleAuthFailure = useCallback(() => {
-    resetPatientState();
-    onAuthFailure();
-  }, [onAuthFailure, resetPatientState]);
+  useEffect(() => {
+    resetPatientStateRef.current = resetPatientState;
+  }, [resetPatientState]);
 
   useEffect(() => {
     if (!session) {
@@ -90,147 +73,80 @@ export function usePatientWorkflow({
     }
   }, [resetPatientState, session]);
 
-  const refreshPatients = useCallback(async () => {
-    if (!session) {
-      return;
-    }
-
-    setListStatus('loading');
-    setListError(null);
-    setMutationError(null);
-
-    try {
-      const response = await listPatients(query, {
-        onAuthFailure: handleAuthFailure,
-        token: session.token,
-      });
-
-      setPatients(response.data);
-      setTotalPatients(response.total);
-      setListStatus('success');
-    } catch (error) {
-      if (error instanceof ApiAuthError) {
-        return;
-      }
-
-      setListError(toErrorMessage(error));
-      setListStatus('error');
-    }
-  }, [handleAuthFailure, query, session]);
-
-  useEffect(() => {
-    void refreshPatients();
-  }, [refreshPatients]);
-
-  const totalPages = useMemo(
-    () => getTotalPages(totalPatients, query.limit),
-    [query.limit, totalPatients],
-  );
-
-  const openDetails = useCallback(
-    async (patient: Patient) => {
-      if (!session) {
-        return;
-      }
-
-      setFormMode(null);
-      setSelectedPatient(patient);
-      setDetailsStatus('loading');
-      setDetailsError(null);
-
-      try {
-        const freshPatient = await getPatient(patient.id, {
-          onAuthFailure: handleAuthFailure,
-          token: session.token,
-        });
-
-        setSelectedPatient(freshPatient);
-        setDetailsStatus('success');
-      } catch (error) {
-        if (error instanceof ApiAuthError) {
-          return;
-        }
-
-        setDetailsError(toErrorMessage(error));
-        setDetailsStatus('error');
-      }
-    },
-    [handleAuthFailure, session],
-  );
-
-  const handleSort = useCallback((field: PatientListQuery['sortBy']) => {
-    setQuery((current) => nextSortQuery(current, field));
-  }, []);
-
   const openCreateForm = useCallback(() => {
-    setSelectedPatient(null);
-    setEditingPatient(undefined);
-    setFormError(undefined);
-    setMutationError(null);
-    setFormMode('create');
-  }, []);
+    patientDetails.setSelectedPatient(null);
+    patientList.setMutationError(null);
+    patientForm.openCreateForm();
+  }, [
+    patientDetails.setSelectedPatient,
+    patientForm.openCreateForm,
+    patientList.setMutationError,
+  ]);
 
-  const openEditForm = useCallback((patient: Patient) => {
-    setSelectedPatient(null);
-    setEditingPatient(patient);
-    setFormError(undefined);
-    setMutationError(null);
-    setFormMode('edit');
-  }, []);
-
-  const cancelForm = useCallback(() => {
-    setFormMode(null);
-    setEditingPatient(undefined);
-    setFormError(undefined);
-  }, []);
+  const openEditForm = useCallback(
+    (patient: Patient) => {
+      patientDetails.setSelectedPatient(null);
+      patientList.setMutationError(null);
+      patientForm.openEditForm(patient);
+    },
+    [
+      patientDetails.setSelectedPatient,
+      patientForm.openEditForm,
+      patientList.setMutationError,
+    ],
+  );
 
   const submitPatientForm = useCallback(
     async (payload: PatientWriteInput) => {
-      if (!session || !formMode) {
+      if (!session || !patientForm.formMode) {
         return;
       }
 
       if (!canMutatePatients(session)) {
-        setFormError(
+        patientForm.setFormError(
           'Your role can view patients, but cannot change records.',
         );
         return;
       }
 
-      setIsSaving(true);
-      setFormError(undefined);
+      patientForm.setIsSaving(true);
+      patientForm.setFormError(undefined);
 
-      const previousPatients = patients;
-      const previousTotalPatients = totalPatients;
-      const previousSelectedPatient = selectedPatient;
-      const previousDetailsStatus = detailsStatus;
+      const previousPatients = patientList.patients;
+      const previousTotalPatients = patientList.totalPatients;
+      const previousSelectedPatient = patientDetails.selectedPatient;
+      const previousDetailsStatus = patientDetails.detailsStatus;
       const optimisticTimestamp = new Date().toISOString();
       const optimisticPatient =
-        formMode === 'create'
+        patientForm.formMode === 'create'
           ? createOptimisticPatient(
               payload,
               `optimistic-${crypto.randomUUID()}`,
               optimisticTimestamp,
             )
-          : editingPatient
+          : patientForm.editingPatient
             ? {
-                ...editingPatient,
+                ...patientForm.editingPatient,
                 ...payload,
                 updatedAt: optimisticTimestamp,
               }
             : undefined;
 
       if (optimisticPatient) {
-        setPatients((current) =>
-          formMode === 'create'
-            ? addPatientToCurrentPage(current, optimisticPatient, query.limit)
+        patientList.setPatients((current) =>
+          patientForm.formMode === 'create'
+            ? addPatientToCurrentPage(
+                current,
+                optimisticPatient,
+                patientList.query.limit,
+              )
             : replacePatientById(current, optimisticPatient),
         );
-        setSelectedPatient(optimisticPatient);
-        setDetailsStatus('success');
+        patientDetails.setSelectedPatient(optimisticPatient);
+        patientDetails.setDetailsStatus('success');
 
-        if (formMode === 'create') {
-          setTotalPatients((current) => current + 1);
+        if (patientForm.formMode === 'create') {
+          patientList.setTotalPatients((current) => current + 1);
         }
       }
 
@@ -238,12 +154,12 @@ export function usePatientWorkflow({
 
       try {
         savedPatient =
-          formMode === 'create'
+          patientForm.formMode === 'create'
             ? await createPatient(payload, {
                 onAuthFailure: handleAuthFailure,
                 token: session.token,
               })
-            : await updatePatient(editingPatient?.id ?? '', payload, {
+            : await updatePatient(patientForm.editingPatient?.id ?? '', payload, {
                 onAuthFailure: handleAuthFailure,
                 token: session.token,
               });
@@ -252,44 +168,52 @@ export function usePatientWorkflow({
           return;
         }
 
-        setPatients(previousPatients);
-        setTotalPatients(previousTotalPatients);
-        setSelectedPatient(previousSelectedPatient);
-        setDetailsStatus(previousDetailsStatus);
-        setFormError(toErrorMessage(error));
+        patientList.setPatients(previousPatients);
+        patientList.setTotalPatients(previousTotalPatients);
+        patientDetails.setSelectedPatient(previousSelectedPatient);
+        patientDetails.setDetailsStatus(previousDetailsStatus);
+        patientForm.setFormError(toErrorMessage(error));
         return;
       } finally {
-        setIsSaving(false);
+        patientForm.setIsSaving(false);
       }
 
-      setPatients((current) =>
+      patientList.setPatients((current) =>
         replacePatientByIdOrAddToCurrentPage(
           current,
-          formMode === 'create'
+          patientForm.formMode === 'create'
             ? (optimisticPatient?.id ?? savedPatient.id)
             : savedPatient.id,
           savedPatient,
-          query.limit,
+          patientList.query.limit,
         ),
       );
-      setFormMode(null);
-      setEditingPatient(undefined);
-      setSelectedPatient(savedPatient);
-      setDetailsStatus('success');
+      patientForm.setFormMode(null);
+      patientForm.setEditingPatient(undefined);
+      patientDetails.setSelectedPatient(savedPatient);
+      patientDetails.setDetailsStatus('success');
 
-      await refreshPatients();
+      await patientList.refreshPatients();
     },
     [
-      detailsStatus,
-      editingPatient,
-      formMode,
       handleAuthFailure,
-      patients,
-      query.limit,
-      refreshPatients,
-      selectedPatient,
+      patientDetails.detailsStatus,
+      patientDetails.selectedPatient,
+      patientDetails.setDetailsStatus,
+      patientDetails.setSelectedPatient,
+      patientForm.editingPatient,
+      patientForm.formMode,
+      patientForm.setEditingPatient,
+      patientForm.setFormError,
+      patientForm.setFormMode,
+      patientForm.setIsSaving,
+      patientList.patients,
+      patientList.query.limit,
+      patientList.refreshPatients,
+      patientList.setPatients,
+      patientList.setTotalPatients,
+      patientList.totalPatients,
       session,
-      totalPatients,
     ],
   );
 
@@ -307,25 +231,25 @@ export function usePatientWorkflow({
         return;
       }
 
-      setListError(null);
-      setMutationError(null);
+      patientList.setListError(null);
+      patientList.setMutationError(null);
 
-      const previousPatients = patients;
-      const previousTotalPatients = totalPatients;
-      const previousListStatus = listStatus;
-      const previousSelectedPatient = selectedPatient;
-      const previousDetailsStatus = detailsStatus;
+      const previousPatients = patientList.patients;
+      const previousTotalPatients = patientList.totalPatients;
+      const previousListStatus = patientList.listStatus;
+      const previousSelectedPatient = patientDetails.selectedPatient;
+      const previousDetailsStatus = patientDetails.detailsStatus;
       const nextPatients = removePatientById(previousPatients, patient.id);
       const removedCount = previousPatients.length - nextPatients.length;
 
-      setPatients(nextPatients);
-      setTotalPatients(
+      patientList.setPatients(nextPatients);
+      patientList.setTotalPatients(
         getOptimisticDeleteTotal(previousTotalPatients, removedCount),
       );
 
-      if (selectedPatient?.id === patient.id) {
-        setSelectedPatient(null);
-        setDetailsStatus('idle');
+      if (patientDetails.selectedPatient?.id === patient.id) {
+        patientDetails.setSelectedPatient(null);
+        patientDetails.setDetailsStatus('idle');
       }
 
       try {
@@ -334,56 +258,63 @@ export function usePatientWorkflow({
           token: session.token,
         });
 
-        await refreshPatients();
+        await patientList.refreshPatients();
       } catch (error) {
         if (error instanceof ApiAuthError) {
           return;
         }
 
-        setPatients(previousPatients);
-        setTotalPatients(previousTotalPatients);
-        setListStatus(previousListStatus);
-        setSelectedPatient(previousSelectedPatient);
-        setDetailsStatus(previousDetailsStatus);
-        setMutationError(toErrorMessage(error));
+        patientList.setPatients(previousPatients);
+        patientList.setTotalPatients(previousTotalPatients);
+        patientList.setListStatus(previousListStatus);
+        patientDetails.setSelectedPatient(previousSelectedPatient);
+        patientDetails.setDetailsStatus(previousDetailsStatus);
+        patientList.setMutationError(toErrorMessage(error));
       }
     },
     [
-      detailsStatus,
       handleAuthFailure,
-      listStatus,
-      patients,
-      refreshPatients,
-      selectedPatient,
+      patientDetails.detailsStatus,
+      patientDetails.selectedPatient,
+      patientDetails.setDetailsStatus,
+      patientDetails.setSelectedPatient,
+      patientList.listStatus,
+      patientList.patients,
+      patientList.refreshPatients,
+      patientList.setListError,
+      patientList.setListStatus,
+      patientList.setMutationError,
+      patientList.setPatients,
+      patientList.setTotalPatients,
+      patientList.totalPatients,
       session,
-      totalPatients,
     ],
   );
 
   return {
-    cancelForm,
-    detailsError,
-    detailsStatus,
-    editingPatient,
-    formError,
-    formMode,
+    cancelForm: patientForm.cancelForm,
+    detailsError: patientDetails.detailsError,
+    detailsStatus: patientDetails.detailsStatus,
+    editingPatient: patientForm.editingPatient,
+    formError: patientForm.formError,
+    formMode: patientForm.formMode,
     handleDelete,
-    handleSort,
+    handleSort: patientList.handleSort,
     isAdmin: canMutatePatients(session),
-    isSaving,
-    listError,
-    listStatus,
-    mutationError,
+    isSaving: patientForm.isSaving,
+    listError: patientList.listError,
+    listStatus: patientList.listStatus,
+    mutationError: patientList.mutationError,
     openCreateForm,
-    openDetails,
+    openDetails: patientDetails.openDetails,
     openEditForm,
-    patients,
-    query,
-    refreshPatients,
-    selectedPatient,
-    setQuery,
+    patients: patientList.patients,
+    query: patientList.query,
+    refreshPatients: patientList.refreshPatients,
+    selectedPatient: patientDetails.selectedPatient,
+    setQuery: patientList.setQuery,
     submitPatientForm,
-    totalPages,
-    totalPatients,
+    totalPages: patientList.totalPages,
+    totalPatients: patientList.totalPatients,
   };
 }

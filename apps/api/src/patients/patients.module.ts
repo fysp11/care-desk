@@ -6,17 +6,15 @@ import {
   JWT_ALGORITHM,
   JWT_EXPIRES_IN,
 } from '../auth/jwt.constants.js';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
-import { RolesGuard } from '../auth/roles.guard.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { PrismaService } from '../prisma.service.js';
 import { PatientsController } from './patients.controller.js';
 import { PATIENTS_REPOSITORY } from './patients.repository.contract.js';
 import { PrismaPatientsRepository } from './patients.repository.js';
 import { PatientsService } from './patients.service.js';
 
-export class PatientsModule {}
-
-Module({
+@Module({
   controllers: [PatientsController],
   imports: [
     JwtModule.register({
@@ -41,4 +39,5 @@ Module({
     PatientsService,
     RolesGuard,
   ],
-})(PatientsModule);
+})
+export class PatientsModule {}

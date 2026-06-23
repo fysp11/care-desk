@@ -214,9 +214,3 @@ export class PrismaPatientsRepository implements PatientsRepository {
     return deleted.count > 0;
   }
 }
-
-Reflect.defineMetadata(
-  'design:paramtypes',
-  [PrismaService],
-  PrismaPatientsRepository,
-);

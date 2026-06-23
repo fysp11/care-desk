@@ -7,9 +7,10 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
-import { ROLES_KEY } from './roles.decorator.js';
-import type { AuthenticatedRequest, UserRole } from './types.js';
+import { ROLES_KEY } from '../decorators/roles.decorator.js';
+import type { AuthenticatedRequest, UserRole } from '../types/auth.types.js';
 
+@Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
@@ -42,6 +43,3 @@ export class RolesGuard implements CanActivate {
     return true;
   }
 }
-
-Reflect.defineMetadata('design:paramtypes', [Reflector], RolesGuard);
-Injectable()(RolesGuard);

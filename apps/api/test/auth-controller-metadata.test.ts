@@ -13,11 +13,11 @@ import {
   AuthProbeController,
 } from '../src/auth/auth.controller.js';
 import { AuthService } from '../src/auth/auth.service.js';
-import { JwtAuthGuard } from '../src/auth/jwt-auth.guard.js';
-import { LoginDto } from '../src/auth/login.dto.js';
-import { ROLES_KEY } from '../src/auth/roles.decorator.js';
-import { RolesGuard } from '../src/auth/roles.guard.js';
-import type { AuthenticatedUser } from '../src/auth/types.js';
+import { ROLES_KEY } from '../src/auth/decorators/roles.decorator.js';
+import { LoginDto } from '../src/auth/dto/login.dto.js';
+import { JwtAuthGuard } from '../src/auth/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../src/auth/guards/roles.guard.js';
+import type { AuthenticatedUser } from '../src/auth/types/auth.types.js';
 
 type ControllerClass = typeof AuthController | typeof AuthProbeController;
 type ControllerInstance = AuthController | AuthProbeController;
@@ -143,10 +143,15 @@ describe('auth controller metadata', () => {
     expectRouteArg(adminMetadata.args, { index: 0 });
   });
 
-  test('probe handlers return the authenticated user without reshaping it', () => {
+  test('probe handlers return the public authenticated user shape', () => {
     const controller = new AuthProbeController();
+    const publicUser = {
+      email: user.email,
+      id: user.id,
+      role: user.role,
+    };
 
-    expect(controller.me(user)).toEqual({ user });
-    expect(controller.adminOnly(user)).toEqual({ ok: true, user });
+    expect(controller.me(user)).toEqual({ user: publicUser });
+    expect(controller.adminOnly(user)).toEqual({ ok: true, user: publicUser });
   });
 });

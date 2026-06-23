@@ -9,7 +9,7 @@ import {
   DEMO_JWT_SECRET,
   JWT_ALGORITHM,
 } from '../src/auth/jwt.constants.js';
-import type { JwtPayload, LoginResponse } from '../src/auth/types.js';
+import type { JwtPayload, LoginResponse } from '../src/auth/types/auth.types.js';
 import { createValidationPipe } from '../src/common/validation.js';
 
 type VerifiedPayload = JwtPayload & {

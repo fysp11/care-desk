@@ -11,12 +11,10 @@ import {
   JWT_ALGORITHM,
   JWT_EXPIRES_IN,
 } from './jwt.constants.js';
-import { JwtAuthGuard } from './jwt-auth.guard.js';
-import { RolesGuard } from './roles.guard.js';
+import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
+import { RolesGuard } from './guards/roles.guard.js';
 
-export class AuthModule {}
-
-Module({
+@Module({
   controllers: [AuthController, AuthProbeController],
   exports: [AuthService, JwtAuthGuard, RolesGuard],
   imports: [
@@ -32,4 +30,5 @@ Module({
     }),
   ],
   providers: [AuthService, JwtAuthGuard, RolesGuard],
-})(AuthModule);
+})
+export class AuthModule {}

@@ -8,18 +8,6 @@ import {
 
 import { PATIENT_SORT_FIELDS } from '../types.js';
 
-export class ListPatientsDto {
-  page?: string;
-
-  limit?: string;
-
-  search?: string;
-
-  sortBy?: string;
-
-  sortDir?: string;
-}
-
 const isSafePositiveIntegerString = (value: unknown): boolean => {
   const numberValue = Number(value);
 
@@ -29,6 +17,7 @@ const isSafePositiveIntegerString = (value: unknown): boolean => {
     numberValue > 0
   );
 };
+
 const IsSafePositiveIntegerString = (fieldName: string): PropertyDecorator =>
   ValidateBy(
     {
@@ -43,18 +32,25 @@ const IsSafePositiveIntegerString = (fieldName: string): PropertyDecorator =>
     },
   );
 
-IsOptional()(ListPatientsDto.prototype, 'page');
-IsSafePositiveIntegerString('page')(ListPatientsDto.prototype, 'page');
+export class ListPatientsDto {
+  @IsSafePositiveIntegerString('page')
+  @IsOptional()
+  page?: string;
 
-IsOptional()(ListPatientsDto.prototype, 'limit');
-IsSafePositiveIntegerString('limit')(ListPatientsDto.prototype, 'limit');
+  @IsSafePositiveIntegerString('limit')
+  @IsOptional()
+  limit?: string;
 
-IsOptional()(ListPatientsDto.prototype, 'search');
-IsString()(ListPatientsDto.prototype, 'search');
-MaxLength(120)(ListPatientsDto.prototype, 'search');
+  @MaxLength(120)
+  @IsString()
+  @IsOptional()
+  search?: string;
 
-IsOptional()(ListPatientsDto.prototype, 'sortBy');
-IsIn([...PATIENT_SORT_FIELDS])(ListPatientsDto.prototype, 'sortBy');
+  @IsIn([...PATIENT_SORT_FIELDS])
+  @IsOptional()
+  sortBy?: string;
 
-IsOptional()(ListPatientsDto.prototype, 'sortDir');
-IsIn(['asc', 'desc'])(ListPatientsDto.prototype, 'sortDir');
+  @IsIn(['asc', 'desc'])
+  @IsOptional()
+  sortDir?: string;
+}

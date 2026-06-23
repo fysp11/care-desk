@@ -6,13 +6,13 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import { DEMO_JWT_SECRET, JWT_ALGORITHM } from './jwt.constants.js';
+import { DEMO_JWT_SECRET, JWT_ALGORITHM } from '../jwt.constants.js';
 import type {
   AuthenticatedRequest,
   AuthenticatedUser,
   JwtPayload,
   UserRole,
-} from './types.js';
+} from '../types/auth.types.js';
 
 const isUserRole = (role: unknown): role is UserRole =>
   role === 'admin' || role === 'user';
@@ -47,6 +47,7 @@ const getBearerToken = (
   return match?.[1];
 };
 
+@Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(private readonly jwtService: JwtService) {}
 
@@ -90,6 +91,3 @@ export class JwtAuthGuard implements CanActivate {
     };
   }
 }
-
-Reflect.defineMetadata('design:paramtypes', [JwtService], JwtAuthGuard);
-Injectable()(JwtAuthGuard);

@@ -7,6 +7,7 @@ documented cuts.
 
 See also:
 
+- [Delivery boundary](DELIVERY_BOUNDARY.md)
 - [Challenge resolution](docs/challenge-resolution.md)
 - [Roadmap](docs/roadmap.md)
 - [Wave 5 delivery defense](docs/roadmap-waves/wave-5-delivery-defense.md)
@@ -32,48 +33,42 @@ The repository is configured for Bun workspaces.
 ## Setup
 
 ```bash
-bun install
+bun run up
 ```
 
-For Wave 7 DB-backed persistence verification:
+`bun run up` installs dependencies, starts PostgreSQL, applies migrations,
+generates the Prisma client, seeds fictional demo data, and starts the API and
+web app through Docker Compose.
+
+Stop local services with:
 
 ```bash
-cp .env.example .env
-source .env
-bun run compose:up
-bun run db:migrate:deploy
-bun run db:generate
-bun run db:seed
-```
-
-Run everything (PostgreSQL + API + web) from compose:
-
-```bash
-bun run compose:up
+bun run down
 ```
 
 ## Run Locally
 
-Start the API:
+Start the local development stack:
 
 ```bash
-bun run dev:api
+bun run dev
 ```
 
-The API listens on:
+This runs the same bootstrap as `bun run up`, then follows API and web logs.
+
+Service URLs:
 
 - `http://localhost:3001`
-
-Start the web app in a second terminal:
-
-```bash
-bun run dev:web
-```
-
-Next dev serves the web app on:
-
 - `http://127.0.0.1:3000`
 - `http://localhost:3000`
+
+Useful root commands:
+
+```bash
+bun run migrate
+bun run seed
+bun run start
+```
 
 ## Demo Login Fixtures
 
@@ -90,65 +85,28 @@ credentials and are not read from secret files.
 Run the normal verification commands from the repo root:
 
 ```bash
-bun run check:quality
-bun test
 bun run typecheck
-bun run mutation
+bun run lint
+bun run test
+bun run test:e2e
 bun run build
 ```
 
-Run the mutation gate directly when working on the scoped web validation and
-workflow tests, DB-free API controller metadata, DTO validation, module DI,
-repository, patient service, or validation-pipe slices:
-
-```bash
-bun run mutation:dry-run
-bun run mutation
-bun run mutation:api:controller:dry-run
-bun run mutation:api:controller
-bun run mutation:api:dto:dry-run
-bun run mutation:api:dto
-bun run mutation:api:module-di:dry-run
-bun run mutation:api:module-di
-bun run mutation:api:repository:dry-run
-bun run mutation:api:repository
-bun run mutation:api:service:dry-run
-bun run mutation:api:service
-bun run mutation:api:validation:dry-run
-bun run mutation:api:validation
-```
-
-The StrykerJS gates mutate tested web workflow/schema logic in `apps/web/lib/`,
-DB-free API controller metadata, DTO validation, patient module DI, repository
-query determinism, patient service logic, validation-pipe error shaping, and the
-PostgreSQL-backed API path. Each mutation gate requires a mutation score of at
-least 90%. Use `bun run mutation:api:controller`, `bun run mutation:api:dto`,
-`bun run mutation:api:module-di`, `bun run mutation:api:repository`, `bun run
-mutation:api:service`, or `bun run mutation:api:validation` for fast local API
-validation before running the Docker-backed API mutation gate.
-
-`bun run check:quality`, `bun run mutation`, and `bun run mutation:dry-run`
-include the PostgreSQL-backed API mutation gate through `db:prepare`, so they
-require Docker Compose and a reachable local PostgreSQL container.
-
-`bun run build` may require running outside this sandboxed agent environment.
-After Wave 4, the web build is blocked in the sandbox because Turbopack tries
-to create a process and bind a port while processing `apps/web/app/globals.css`;
-the OS returns `Operation not permitted`. Rerun the build outside the sandbox
-before submission.
+`bun run test`, `bun run test:e2e`, and `bun run up` require Docker Compose and
+a reachable local PostgreSQL container. If stale Compose containers point at an
+old worktree, recreate them with `bun run down` and `bun run up` before rerunning
+browser checks.
 
 ## Verification Evidence
 
 | Evidence              | Result                                                                                           |
 | --------------------- | ------------------------------------------------------------------------------------------------ |
-| API focused tests     | DB-free DTO, module DI, repository, and service tests pass locally.                              |
-| API typecheck         | Passes locally through `bun run typecheck` after Prisma client generation.                       |
-| Web focused tests     | Web unit tests pass locally, including API client, workflow, schema, session, and reliability.   |
-| Web typecheck         | Passes locally through `bun run typecheck`.                                                      |
-| Focused mutation      | Web, API controller, DTO, module DI, repository, and service gates pass locally at or above 90%. |
-| DB-backed API gate    | Requires Docker Compose and local PostgreSQL through `db:prepare`; rerun where Docker is usable. |
-| Web build             | Not run in this environment; rerun outside sandbox as needed.                                    |
-| Mutation report paths | StrykerJS writes per-gate local reports under `reports/mutation*/`.                              |
+| Workspace tests       | `bun run test` passes: shared scaffold, API integration/unit tests, and web unit tests.          |
+| API focused tests     | 54 API tests pass across auth/RBAC, DTO, decorator style, module DI, repository, service, validation, and DB-backed patient API behavior. |
+| Typecheck             | `bun run typecheck` passes after Prisma client generation.                                      |
+| Web focused tests     | Web unit tests pass, including API client, workflow, schema, session, and reliability.           |
+| Browser e2e           | `bun run test:e2e` passes 9 Playwright tests for admin/user workflows.                          |
+| Production build      | `bun run build` passes for shared, API, and web.                                                 |
 
 ## Known Cuts
 
@@ -158,7 +116,7 @@ before submission.
 | Production secrets/env management | Not included.                                                                                     | Add secret management, rotation, and deployment-specific configuration.                             |
 | Cloud hosting                     | Not included.                                                                                     | Deploy only after local build/test proof is refreshed.                                              |
 | Docker Compose                    | API + web services are now included in `docker-compose.yml` alongside PostgreSQL. | Keep host/in-container endpoint alignment and health checks aligned as compose hardening continues. |
-| Browser E2E matrix                | Not included.                                                                                     | Add Playwright coverage for admin/user workflows and responsive breakpoints.                        |
+| Broad browser/device matrix       | Not included.                                                                                     | Keep the focused Playwright admin/user smoke suite; add responsive/device matrix only if requested. |
 | Audit log and soft delete         | Not included.                                                                                     | Add append-only patient events and archive semantics before clinical use.                           |
 | Refresh tokens/password reset     | Not included.                                                                                     | Add a production identity lifecycle if auth scope expands.                                          |
 | Multi-tenancy                     | Not included.                                                                                     | Add organization scoping before any multi-customer data model.                                      |

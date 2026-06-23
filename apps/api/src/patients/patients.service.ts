@@ -27,6 +27,7 @@ const MAX_LIMIT = 50;
 const DEFAULT_SORT_BY = 'lastName' satisfies PatientSortBy;
 const DEFAULT_SORT_DIR = 'asc' satisfies PatientSortDir;
 
+@Injectable()
 export class PatientsService {
   constructor(
     @Inject(PATIENTS_REPOSITORY)
@@ -125,5 +126,3 @@ export class PatientsService {
     });
   }
 }
-
-Injectable()(PatientsService);

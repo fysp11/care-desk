@@ -1,6 +1,6 @@
 import { SetMetadata } from '@nestjs/common';
 
-import type { UserRole } from './types.js';
+import type { UserRole } from '../types/auth.types.js';
 
 export const ROLES_KEY = 'care-desk:roles';
 

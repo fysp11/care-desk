@@ -3,10 +3,11 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 import { findDemoUserByEmail } from './demo-users.js';
+import type { LoginDto } from './dto/login.dto.js';
 import { JWT_ALGORITHM, JWT_EXPIRES_IN } from './jwt.constants.js';
-import type { LoginDto } from './login.dto.js';
-import type { JwtPayload, LoginResponse } from './types.js';
+import type { JwtPayload, LoginResponse } from './types/auth.types.js';
 
+@Injectable()
 export class AuthService {
   constructor(private readonly jwtService: JwtService) {}
 
@@ -53,6 +54,3 @@ export class AuthService {
     });
   }
 }
-
-Reflect.defineMetadata('design:paramtypes', [JwtService], AuthService);
-Injectable()(AuthService);

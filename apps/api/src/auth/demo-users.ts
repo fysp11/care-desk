@@ -1,4 +1,4 @@
-import type { UserRole } from './types.js';
+import type { UserRole } from './types/auth.types.js';
 
 interface DemoUser {
   readonly id: string;

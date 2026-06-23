@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
@@ -12,6 +16,10 @@ export class AuthService {
   constructor(private readonly jwtService: JwtService) {}
 
   async login(loginDto: LoginDto): Promise<LoginResponse> {
+    if (!this.isLoginDto(loginDto)) {
+      throw this.invalidLoginRequestError();
+    }
+
     const user = findDemoUserByEmail(loginDto.email);
 
     if (!user) {
@@ -52,5 +60,25 @@ export class AuthService {
       code: 'INVALID_CREDENTIALS',
       message: 'Email or password is invalid.',
     });
+  }
+
+  private invalidLoginRequestError(): BadRequestException {
+    return new BadRequestException({
+      code: 'VALIDATION_ERROR',
+      message: 'Request validation failed.',
+    });
+  }
+
+  private isLoginDto(value: unknown): value is LoginDto {
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+
+    const candidate = value as Record<string, unknown>;
+
+    return (
+      typeof candidate.email === 'string' &&
+      typeof candidate.password === 'string'
+    );
   }
 }

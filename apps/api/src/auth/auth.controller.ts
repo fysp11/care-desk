@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  InternalServerErrorException,
   HttpCode,
   HttpStatus,
   Post,
@@ -12,11 +13,20 @@ import type { LoginResponse } from './types/auth.types.js';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {
+    this.login = this.login.bind(this);
+  }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
   login(@Body() loginDto: LoginDto): Promise<LoginResponse> {
+    if (!this.authService) {
+      throw new InternalServerErrorException({
+        code: 'AUTH_SERVICE_UNAVAILABLE',
+        message: 'Login service is unavailable.',
+      });
+    }
+
     return this.authService.login(loginDto);
   }
 }

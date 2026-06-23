@@ -209,6 +209,21 @@ describe('auth trust boundary', () => {
     expect(body.code).toBe('VALIDATION_ERROR');
   });
 
+  test('missing login body returns 400', async () => {
+    const response = await injectRequest(dispatch, {
+      method: 'POST',
+      url: '/auth/login',
+      headers: {
+        'content-type': 'application/json',
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+
+    const body = response.json<ApiErrorBody>();
+    expect(body.code).toBe('VALIDATION_ERROR');
+  });
+
   test('wrong credentials return 401', async () => {
     const response = await postLogin({
       email: 'admin@example.com',

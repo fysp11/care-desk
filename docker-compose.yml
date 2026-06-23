@@ -28,7 +28,7 @@ services:
       NODE_ENV: development
       PORT: 3001
     volumes:
-      - .:/app
+      - ${CARE_DESK_WORKTREE_DIR:-.}:/app
       - npm-cache:/root/.npm
     ports:
       - "3001:3001"
@@ -46,7 +46,7 @@ services:
       NEXT_PUBLIC_API_BASE_URL: http://localhost:3001
       PORT: 3000
     volumes:
-      - .:/app
+      - ${CARE_DESK_WORKTREE_DIR:-.}:/app
       - npm-cache:/root/.npm
     ports:
       - "3000:3000"

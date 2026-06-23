@@ -13,7 +13,7 @@ import { RolesGuard } from './guards/roles.guard.js';
 
 @Module({
   controllers: [AuthController],
-  exports: [AuthService, JwtAuthGuard, RolesGuard],
+  exports: [AuthService, JwtAuthGuard, JwtModule, RolesGuard],
   imports: [
     JwtModule.register({
       secret: DEMO_JWT_SECRET,

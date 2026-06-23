@@ -49,5 +49,5 @@ Use NestJS for the backend API:
 
 ## Inventory Decision
 
-This is a required backend framework. A simpler custom Bun/Express API would not
+This is a required backend framework. A simpler custom Node/Express API would not
 match the challenge as written.

@@ -2,7 +2,7 @@ import type {
   Prisma,
   Patient as PrismaPatient,
 } from '../generated/prisma/client.js';
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Inject, Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../prisma.service.js';
 import { seededPatients } from './patient-fixtures.js';
@@ -41,7 +41,7 @@ const buildOrderBy = ({
 export class PrismaPatientsRepository
   implements PatientsRepository, ResettablePatientsRepository
 {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async reset(): Promise<void> {
     await this.prisma.patient.deleteMany();

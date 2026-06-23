@@ -87,8 +87,8 @@ Explicit non-goals:
 - [x] README explains how to run, test, and evaluate the app.
 - [x] Tradeoffs and deferred work are documented.
 
-Evidence: `bun run test`, `bun run typecheck`, `bun run build`, and
-`bun run test:e2e` passes after recreating the local Compose
+Evidence: `npm run test`, `npm run typecheck`, `npm run build`, and
+`npm run test:e2e` passes after recreating the local Compose
 stack from the current worktree. The e2e suite covers admin CRUD/search/edit,
 details, failure recovery, user view-only mode, direct user mutation `403`,
 session persistence/logout, denied storage, and unauthorized-session recovery.

@@ -5,13 +5,6 @@ prioritizes the reviewable vertical slice: backend trust boundaries, patient
 CRUD/list behavior, role-aware UI, reliability states, focused tests, and
 documented cuts.
 
-See also:
-
-- [Delivery boundary](DELIVERY_BOUNDARY.md)
-- [Challenge resolution](docs/challenge-resolution.md)
-- [Roadmap](docs/roadmap.md)
-- [Wave 5 delivery defense](docs/roadmap-waves/wave-5-delivery-defense.md)
-
 ## What Shipped
 
 | Area        | Status                                                                                                                          |
@@ -27,7 +20,7 @@ See also:
 
 - Node.js 20.19+
 
-The repository is configured for npm workspaces and can be invoked through npm, pnpm, or bun script runners.
+The repository is configured for npm workspaces and uses npm commands in the documented evaluator path.
 
 ## Setup
 
@@ -46,22 +39,6 @@ Stop local services with:
 npm run down
 npm run restart
 ```
-
-## Run Locally
-
-Start the local development stack:
-
-```bash
-npm run dev
-```
-
-This runs the same bootstrap as `npm run up`, then follows API and web logs.
-
-Service URLs:
-
-- `http://localhost:3001`
-- `http://127.0.0.1:3000`
-- `http://localhost:3000`
 
 Useful root commands:
 

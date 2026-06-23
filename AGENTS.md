@@ -114,8 +114,8 @@ refactor, verify, or review.
 
 Run the smallest relevant check first:
 
-- `bun test`
-- `bun run typecheck`
+- `npm run test`
+- `npm run typecheck`
 - targeted API/UI tests once they exist
 
 Before declaring production-code work complete, also run linting, production

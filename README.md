@@ -11,6 +11,11 @@ The repository is configured for npm workspaces and uses `npm`.
 ## Setup
 
 ```bash
+git clone https://github.com/fysp11/care-desk.git && \
+  cd care-desk
+```
+
+```bash
 cp .env.example .env && \
   npm install &&
   npm run up

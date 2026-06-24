@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "experimentalServices": {
+    "api": {
+      "entrypoint": "apps/api/src/server.ts",
+      "routePrefix": "/api"
+    },
+    "web": {
+      "entrypoint": "apps/web",
+      "routePrefix": "/"
+    }
+  }
+}

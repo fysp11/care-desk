@@ -5,11 +5,11 @@ import {
   Inject,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
 
 import { findDemoUserByEmail } from './demo-users.js';
 import type { LoginDto } from './dto/login.dto.js';
 import { JWT_ALGORITHM, JWT_EXPIRES_IN } from './jwt.constants.js';
+import { verifyPassword } from './password-verifier.js';
 import type { JwtPayload, LoginResponse } from './types/auth.types.js';
 
 @Injectable()
@@ -30,7 +30,7 @@ export class AuthService {
       throw this.invalidCredentialsError();
     }
 
-    const passwordMatches = await bcrypt.compare(
+    const passwordMatches = await verifyPassword(
       loginDto.password,
       user.passwordHash,
     );

@@ -9,6 +9,22 @@ import type {
 
 export const DEFAULT_API_BASE_URL = 'http://localhost:3001';
 
+const getVercelApiBaseUrl = (): string | undefined => {
+  if (
+    typeof globalThis.location === 'undefined' ||
+    !globalThis.location.hostname.endsWith('.vercel.app')
+  ) {
+    return undefined;
+  }
+
+  return `${globalThis.location.origin}/api`;
+};
+
+export const getApiBaseUrl = (): string =>
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  getVercelApiBaseUrl() ??
+  DEFAULT_API_BASE_URL;
+
 export type Fetcher = (
   input: RequestInfo | URL,
   init?: RequestInit,
@@ -128,14 +144,24 @@ const messageFromPayload = (
   return payload.error ?? fallback;
 };
 
-const toUrl = (path: string | URL, baseUrl: string): URL =>
-  path instanceof URL ? path : new URL(path, baseUrl);
+const toUrl = (path: string | URL, baseUrl: string): URL => {
+  if (path instanceof URL) {
+    return path;
+  }
+
+  const base = new URL(baseUrl);
+  base.pathname = base.pathname.endsWith('/')
+    ? base.pathname
+    : `${base.pathname}/`;
+
+  return new URL(path.replace(/^\/+/, ''), base);
+};
 
 export const buildPatientsUrl = (
   baseUrl: string,
   query: PatientListQuery,
 ): URL => {
-  const url = new URL('/patients', baseUrl);
+  const url = toUrl('/patients', baseUrl);
 
   url.searchParams.set('page', String(query.page));
   url.searchParams.set('limit', String(query.limit));
@@ -174,7 +200,7 @@ export const apiRequest = async <TResponse, TBody = unknown>(
   }
 
   const response = await fetcher(
-    toUrl(path, options.baseUrl ?? DEFAULT_API_BASE_URL),
+    toUrl(path, options.baseUrl ?? getApiBaseUrl()),
     request,
   );
 
@@ -218,13 +244,10 @@ export const listPatients = (
   query: PatientListQuery,
   options: AuthenticatedRequestOptions,
 ): Promise<PatientListResponse> =>
-  apiRequest<PatientListResponse>(
-    buildPatientsUrl(DEFAULT_API_BASE_URL, query),
-    {
-      onAuthFailure: options.onAuthFailure,
-      token: options.token,
-    },
-  );
+  apiRequest<PatientListResponse>(buildPatientsUrl(getApiBaseUrl(), query), {
+    onAuthFailure: options.onAuthFailure,
+    token: options.token,
+  });
 
 export const getPatient = (
   id: string,

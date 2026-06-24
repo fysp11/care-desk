@@ -9,6 +9,7 @@ reports/
 apps/web/playwright-report/
 apps/web/test-results/
 .next/
+.vercel/
 *.tsbuildinfo
 .DS_Store
 *.log

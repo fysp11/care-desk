@@ -20,6 +20,11 @@ After dependencies are installed, `npm run up` starts PostgreSQL, applies
 migrations, generates the Prisma client, seeds fictional demo data, and starts
 the API and web app through Docker Compose.
 
+## URLs
+
+- WebApp Entrypoint: http://localhost:3000
+- API Swagger: http://localhost:3001/api
+
 Stop & Restart local services with:
 
 ```bash

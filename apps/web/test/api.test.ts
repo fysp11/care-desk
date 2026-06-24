@@ -8,6 +8,7 @@ import {
   createPatient,
   deletePatient,
   getPatient,
+  getApiBaseUrl,
   listPatients,
   updatePatient,
 } from '../lib/api';
@@ -79,6 +80,69 @@ const captureGlobalFetch = async <TResult>(
 };
 
 describe('frontend API helpers', () => {
+  test('uses NEXT_PUBLIC_API_BASE_URL for browser API requests when configured', async () => {
+    const originalApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    process.env.NEXT_PUBLIC_API_BASE_URL = 'https://api.care-desk.example';
+
+    try {
+      const { requestUrl } = await captureGlobalFetch(() =>
+        listPatients(
+          {
+            limit: 10,
+            page: 1,
+            search: '',
+            sortBy: 'lastName',
+            sortDir: 'asc',
+          },
+          {
+            onAuthFailure() {},
+            token: 'demo-token',
+          },
+        ),
+      );
+
+      expect(getApiBaseUrl()).toBe('https://api.care-desk.example');
+      expect(requestUrl.toString()).toBe(
+        'https://api.care-desk.example/patients?page=1&limit=10&sortBy=lastName&sortDir=asc',
+      );
+    } finally {
+      if (originalApiBaseUrl === undefined) {
+        delete process.env.NEXT_PUBLIC_API_BASE_URL;
+      } else {
+        process.env.NEXT_PUBLIC_API_BASE_URL = originalApiBaseUrl;
+      }
+    }
+  });
+
+  test('uses the current Vercel origin with /api when no API base URL is configured', () => {
+    const originalApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const originalLocation = globalThis.location;
+
+    delete process.env.NEXT_PUBLIC_API_BASE_URL;
+    Object.defineProperty(globalThis, 'location', {
+      configurable: true,
+      value: {
+        hostname: 'care-desk-preview.vercel.app',
+        origin: 'https://care-desk-preview.vercel.app',
+      },
+    });
+
+    try {
+      expect(getApiBaseUrl()).toBe('https://care-desk-preview.vercel.app/api');
+    } finally {
+      if (originalApiBaseUrl === undefined) {
+        delete process.env.NEXT_PUBLIC_API_BASE_URL;
+      } else {
+        process.env.NEXT_PUBLIC_API_BASE_URL = originalApiBaseUrl;
+      }
+
+      Object.defineProperty(globalThis, 'location', {
+        configurable: true,
+        value: originalLocation,
+      });
+    }
+  });
+
   test('builds the patient list URL with search, sort, and pagination', () => {
     const url = buildPatientsUrl('http://localhost:3001', {
       limit: 5,
@@ -90,6 +154,33 @@ describe('frontend API helpers', () => {
 
     expect(url.toString()).toBe(
       'http://localhost:3001/patients?page=2&limit=5&search=Ada+Brooks&sortBy=dob&sortDir=desc',
+    );
+  });
+
+  test('preserves base URL path prefixes for same-origin API deployments', async () => {
+    const url = buildPatientsUrl('https://care-desk.example/api', {
+      limit: 5,
+      page: 2,
+      search: '',
+      sortBy: 'dob',
+      sortDir: 'desc',
+    });
+    let requestUrl: RequestInfo | URL | undefined;
+
+    await apiRequest('/auth/login', {
+      baseUrl: 'https://care-desk.example/api',
+      fetcher: async (input) => {
+        requestUrl = input;
+
+        return jsonResponse({ token: 'demo-token' });
+      },
+    });
+
+    expect(url.toString()).toBe(
+      'https://care-desk.example/api/patients?page=2&limit=5&sortBy=dob&sortDir=desc',
+    );
+    expect((requestUrl as URL).toString()).toBe(
+      'https://care-desk.example/api/auth/login',
     );
   });
 

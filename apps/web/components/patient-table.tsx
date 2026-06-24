@@ -34,8 +34,8 @@ const sortableColumns: readonly {
   readonly field: PatientSortBy;
   readonly label: string;
 }[] = [
-  { field: 'lastName', label: 'Last name' },
   { field: 'firstName', label: 'First name' },
+  { field: 'lastName', label: 'Last name' },
   { field: 'dob', label: 'DOB' },
   { field: 'email', label: 'Email' },
 ];

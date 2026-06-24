@@ -25,5 +25,14 @@
     "@playwright/test": "^1.61.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0"
+  },
+  "optionalDependencies": {
+    "@next/swc-darwin-x64": "16.2.9",
+    "@next/swc-linux-x64-gnu": "16.2.9",
+    "@next/swc-linux-x64-musl": "16.2.9",
+    "@next/swc-win32-arm64-msvc": "16.2.9",
+    "@next/swc-win32-x64-msvc": "16.2.9",
+    "@tailwindcss/oxide-linux-x64-gnu": "4.3.1",
+    "@tailwindcss/oxide-linux-x64-musl": "4.3.1"
   }
 }

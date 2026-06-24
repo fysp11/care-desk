@@ -1,0 +1,36 @@
+{
+  "name": "care-desk",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "compose": "docker compose -f \"$(pwd)/docker-compose.yml\" --project-directory \"$(pwd)\" -p care-desk",
+    "up": "npm run migrate && npm run seed && npm run start",
+    "down": "npm run compose -- down --remove-orphans",
+    "restart": "npm run down && npm run up",
+    "migrate": "npm run compose -- up -d --wait postgres && npm run db:migrate:deploy --workspace @care-desk/api && npm run db:generate --workspace @care-desk/api",
+    "seed": "npm run compose -- up -d --wait postgres && npm run db:seed --workspace @care-desk/api",
+    "dev": "npm run up && npm run compose -- logs -f api web",
+    "start": "npm run compose -- up -d --wait --force-recreate api web",
+    "build": "npm run build --workspace @care-desk/shared && npm run build --workspace @care-desk/api && npm run build --workspace @care-desk/web",
+    "lint": "npm run typecheck",
+    "test": "npm run test --workspace @care-desk/shared && npm run test --workspace @care-desk/api && npm run test --workspace @care-desk/web",
+    "test:e2e": "npm run test:e2e --workspace @care-desk/web",
+    "typecheck": "npm run db:generate --workspace @care-desk/api && npm run typecheck --workspace @care-desk/shared && npm run typecheck --workspace @care-desk/api && npm run typecheck --workspace @care-desk/web"
+  },
+  "devDependencies": {
+    "@prisma/adapter-pg": "7.8.0",
+    "@types/node": "^22.20.0",
+    "pg": "8.22.0",
+    "tsx": "4.22.4",
+    "vitest": "3.2.6",
+    "typescript": "6.0.3"
+  }
+}
